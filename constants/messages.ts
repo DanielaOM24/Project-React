@@ -1,8 +1,3 @@
-/**
- * Mensajes del sistema centralizados para Nutrilens.
- * Tono: amigable, claro y coherente con una app de nutrición premium.
- * Uso: getMessage('success.onboarding'), showSuccess({ messageKey: 'success.onboarding' }) o showToastFrom.success.onboarding().
- */
 
 export const Messages = {
   // ─── SUCCESS ─────────────────────────────────────────────────────────────
@@ -40,11 +35,7 @@ export const Messages = {
   },
 } as const;
 
-/**
- * Obtiene el texto de un mensaje a partir de una clave con punto.
- * Ej: getMessage('success.onboarding') → Messages.success.onboarding
- * Si la clave no existe, devuelve la clave tal cual.
- */
+
 export function getMessage(key: string): string {
   const [category, subKey] = key.split('.');
   const cat = (Messages as Record<string, Record<string, string>>)[category];
