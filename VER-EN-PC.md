@@ -9,15 +9,9 @@
    npm run web:pc
    ```
 
-   o, si el puerto 8082 falla:
+   Si dice que el puerto está en uso, prueba: `npx expo start --web --port 19007` y luego **`w`** en la terminal.
 
-   ```bash
-   npx expo start --web
-   ```
-
-   Luego pulsa **`w`** en la terminal para abrir en el navegador.
-
-3. Se abrirá en **http://localhost:8082** (o 8081). Si no se abre solo, copia la URL en Chrome o Edge.
+3. Se abrirá en **http://localhost:19006**. Si no se abre solo, copia esa URL en Chrome o Edge.
 
 ---
 
