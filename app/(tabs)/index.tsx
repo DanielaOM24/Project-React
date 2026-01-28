@@ -5,6 +5,7 @@ import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { showToastFrom } from '@/utils/showToast';
 import { Link } from 'expo-router';
 
 export default function HomeScreen() {
@@ -43,18 +44,22 @@ export default function HomeScreen() {
           </Link.Trigger>
           <Link.Preview />
           <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
+            <Link.MenuAction
+              title="Action"
+              icon="cube"
+              onPress={() => showToastFrom.success.mealRegistered()}
+            />
             <Link.MenuAction
               title="Share"
               icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
+              onPress={() => showToastFrom.success.recipeSaved()}
             />
             <Link.Menu title="More" icon="ellipsis">
               <Link.MenuAction
                 title="Delete"
                 icon="trash"
                 destructive
-                onPress={() => alert('Delete pressed')}
+                onPress={() => showToastFrom.error.generic('Acción cancelada')}
               />
             </Link.Menu>
           </Link.Menu>
