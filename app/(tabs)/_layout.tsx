@@ -1,3 +1,4 @@
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Tabs } from 'expo-router';
 import React from 'react';
 
@@ -19,17 +20,39 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: 'Inicio',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="recetas"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'Recetas',
+          tabBarIcon: ({ color }) => <MaterialIcons name="menu-book" size={26} color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="registrar"
+        options={{
+          title: 'Registrar',
+          tabBarIcon: ({ color }) => <MaterialIcons name="add-circle-outline" size={26} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="chat"
+        options={{
+          title: 'Chat',
+          tabBarIcon: ({ color }) => <MaterialIcons name="chat-bubble-outline" size={26} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="perfil"
+        options={{
+          title: 'Perfil',
+          tabBarIcon: ({ color }) => <MaterialIcons name="person-outline" size={26} color={color} />,
+        }}
+      />
+      <Tabs.Screen name="explore" options={{ href: null }} />
     </Tabs>
   );
 }

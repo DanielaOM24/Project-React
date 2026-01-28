@@ -1,98 +1,126 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { Colors } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { getMockProgress } from '@/mock/progress.mock';
+import { getMockUser } from '@/mock/user.mock';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { router } from 'expo-router';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
-export default function HomeScreen() {
+/**
+ * Dashboard (Inicio)
+ * Datos: user.mock + progress.mock.
+ * Botones: Registrar comida → Registrar | Explorar recetas → Recetas | Chat IA → Chat.
+ */
+export default function DashboardScreen() {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
+  const user = getMockUser();
+  const progress = getMockProgress();
+  const { hoy, rachaDias } = progress;
+  const pctCal = Math.min(100, Math.round((hoy.caloriasConsumidas / hoy.caloriasObjetivo) * 100));
+  const pctAgua = Math.min(100, Math.round((hoy.vasosAgua / hoy.vasosObjetivo) * 100));
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
+    <ScrollView
+      style={[styles.scroll, { backgroundColor: colors.background }]}
+      contentContainerStyle={styles.content}>
+      <ThemedView style={styles.header}>
+        <ThemedText type="title">Hola, {user.name.split(' ')[0]}</ThemedText>
+        <ThemedText style={styles.sub}>Resumen de hoy</ThemedText>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
+      {/* Bloque progreso mock */}
+      <ThemedView style={[styles.progressCard, { borderColor: colors.tint }]}>
+        <View style={styles.progressRow}>
+          <MaterialIcons name="local-fire-department" size={22} color={colors.tint} />
+          <ThemedText type="defaultSemiBold">Calorías</ThemedText>
+          <ThemedText style={styles.progressVal}>{hoy.caloriasConsumidas} / {hoy.caloriasObjetivo}</ThemedText>
+        </View>
+        <View style={[styles.bar, { backgroundColor: 'rgba(10,126,164,0.2)' }]}>
+          <View style={[styles.barFill, { width: `${pctCal}%`, backgroundColor: colors.tint }]} />
+        </View>
+        <View style={styles.progressRow}>
+          <MaterialIcons name="water-drop" size={20} color={colors.tint} />
+          <ThemedText type="defaultSemiBold">Agua</ThemedText>
+          <ThemedText style={styles.progressVal}>{hoy.vasosAgua} / {hoy.vasosObjetivo} vasos</ThemedText>
+        </View>
+        <View style={[styles.bar, { backgroundColor: 'rgba(10,126,164,0.2)' }]}>
+          <View style={[styles.barFill, { width: `${pctAgua}%`, backgroundColor: colors.tint }]} />
+        </View>
+        <View style={styles.progressRow}>
+          <MaterialIcons name="whatshot" size={20} color={colors.tint} />
+          <ThemedText type="defaultSemiBold">Racha</ThemedText>
+          <ThemedText style={styles.progressVal}>{rachaDias} días</ThemedText>
+        </View>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
+
+      <ThemedText type="subtitle" style={styles.sectionTitle}>Acciones</ThemedText>
+      <ThemedView style={styles.cards}>
+        <TouchableOpacity
+          style={[styles.card, { borderColor: colors.tint }]}
+          onPress={() => router.push('/(tabs)/registrar')}
+          activeOpacity={0.8}>
+          <MaterialIcons name="add-circle-outline" size={32} color={colors.tint} />
+          <View style={styles.cardText}>
+            <ThemedText type="subtitle">Registrar comida</ThemedText>
+            <ThemedText style={styles.cardHint}>Ir a Registrar</ThemedText>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.card, { borderColor: colors.tint }]}
+          onPress={() => router.push('/(tabs)/recetas')}
+          activeOpacity={0.8}>
+          <MaterialIcons name="menu-book" size={32} color={colors.tint} />
+          <View style={styles.cardText}>
+            <ThemedText type="subtitle">Explorar recetas</ThemedText>
+            <ThemedText style={styles.cardHint}>Ir a Recetas</ThemedText>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.card, { borderColor: colors.tint }]}
+          onPress={() => router.push('/(tabs)/chat')}
+          activeOpacity={0.8}>
+          <MaterialIcons name="chat-bubble-outline" size={32} color={colors.tint} />
+          <View style={styles.cardText}>
+            <ThemedText type="subtitle">Chat IA</ThemedText>
+            <ThemedText style={styles.cardHint}>Ir a Chat</ThemedText>
+          </View>
+        </TouchableOpacity>
       </ThemedView>
-    </ParallaxScrollView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  scroll: { flex: 1 },
+  content: { padding: 20, paddingBottom: 40 },
+  header: { marginBottom: 16 },
+  sub: { opacity: 0.8, marginTop: 4 },
+  progressCard: {
+    borderWidth: 2,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 24,
+    gap: 12,
+  },
+  progressRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  progressVal: { marginLeft: 'auto', opacity: 0.9 },
+  bar: { height: 6, borderRadius: 3, overflow: 'hidden' },
+  barFill: { height: '100%', borderRadius: 3 },
+  sectionTitle: { marginBottom: 12 },
+  cards: { gap: 16 },
+  card: {
+    borderWidth: 2,
+    borderRadius: 16,
+    padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 16,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+  cardText: { flex: 1 },
+  cardHint: { opacity: 0.6, fontSize: 12, marginTop: 2 },
 });
