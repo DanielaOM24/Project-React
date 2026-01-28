@@ -8,6 +8,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "web:pc": "expo start --web --port 8082",
     "lint": "expo lint"
   },
   "dependencies": {
