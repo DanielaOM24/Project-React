@@ -33,7 +33,7 @@ export const Badge = ({
 const styles = StyleSheet.create({
     badge: {
         fontSize: typography.size.body,      // 12
-        fontFamily: typography.fontfamily.bold,
+        fontFamily: typography.fontfamily.medium,
         color: colors.darkgreen,                 // texto oscuro
         paddingVertical: spacing.sm,            // 4
         paddingHorizontal: spacing.md,          // 8

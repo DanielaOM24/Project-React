@@ -2,11 +2,11 @@ export const colors = {
     // brand
     greenprimary: '#C8F75E', // verde lima
     greensecondary: '#9FD93A', // verde esmeralda
-    darkgreen: '#0E2A25', // verde oscuro
+    darkgreen: '#102c18', // verde oscuro
 
-    // background para cards, buttons and badges 
-    // (para fondo de app usar los gradients)
-    background: '#3e7c7152', // verde oscuro
+    // backgrounds
+    background: '#9FD93A', // verde para cards, buttons and badges
+    appBackground: '#FAFAFA', // fondo blanco de la app
 
     // text
     primaryText: '#ffffff',
@@ -26,10 +26,10 @@ export const colors = {
 
 export const typography = {
     fontfamily: {
-        regular: 'Inter-Regular',
-        medium: 'Inter-Medium',
-        bold: 'Inter-Bold',
-        semibold: 'Inter-SemiBold',
+        regular: 'Poppins-Regular',
+        medium: 'Poppins-Medium',
+        semibold: 'Poppins-SemiBold',
+        bold: 'Poppins-Bold',
     },
 
     size: {

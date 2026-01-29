@@ -1,11 +1,9 @@
+import { Badge } from '@/components/ui/Badge';
+import { CardBase } from '@/components/ui/CardBase';
+import { colors, radious, spacing, typography } from '@/styles/designSystem';
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import GradientBackground from '@/components/ui/GradientBackground';
-import { CardBase } from '@/components/ui/CardBase';
-import { Badge } from '@/components/ui/Badge';
-import { IconButton } from '@/components/buttons/IconButton';
-import { colors, radious, spacing, typography } from '@/styles/designSystem';
 
 export default function DashboardScreen() {
   // Datos provisionales
@@ -15,36 +13,41 @@ export default function DashboardScreen() {
   const percentage = (currentCalories / totalCalories) * 100;
 
   return (
-    <GradientBackground type="darkPrimary">
+    <View style={styles.appContainer}>
       <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
+        {/* Header (después se debe llamar displayname api/user/profile  ) */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.dateTitle}>Lunes,</Text>
-            <Text style={styles.dateTitle}>Enero 27</Text>
+            <Text style={styles.dateTitle}>Hola,</Text>
+            <Text style={styles.dateTitle}>Esteban</Text>
+          </View>
+          <View>
+            <Badge variant='secondary' text='Objetivo'></Badge>
           </View>
         </View>
 
         {/* progreso de calorías */}
         <View style={styles.caloriesSection}>
-          <CardBase variant="solid" style={styles.caloriesCard}>
+          <CardBase variant="green" style={styles.caloriesCard}>
             <View style={styles.caloriesCardContent}>
               {/* Izquierda - Porcentaje */}
               <View style={styles.percentageSection}>
-                <Ionicons name="flash" size={24} color={colors.textdark} />
-                <Text style={styles.intakeLabel}>Consumo diario</Text>
+                <View style={styles.dateRow}>
+                  <Ionicons name="calendar-outline" size={20} color={colors.textdark} />
+                  <Text style={styles.intakeLabel}>Jueves, Enero 29</Text>
+                </View>
                 <Text style={styles.percentageText}>{Math.round(percentage)}%</Text>
               </View>
-              
+
               {/* Derecha - Media Luna */}
               <View style={styles.circleSection}>
                 <View style={styles.halfCircleContainer}>
                   {/* Círculo de progreso */}
                   <View style={styles.progressRing} />
-                  
+
                   {/* Números centrados */}
                   <View style={styles.caloriesNumbers}>
                     <Text style={styles.currentCalories}>{currentCalories}</Text>
@@ -54,58 +57,27 @@ export default function DashboardScreen() {
                 </View>
               </View>
             </View>
-          </CardBase>
-        </View>
-
-        {/* Nutrientes Pills */}
-        <View style={styles.nutrientPills}>
-          <Badge text="Proteínas" variant="primary" />
-          <Badge text="Carbohidratos" variant="secondary" style={{ color: colors.secondaryText, fontFamily: typography.fontfamily.regular}} />
-          <Badge text="Grasas" variant="secondary" style={{ color: colors.secondaryText, fontFamily: typography.fontfamily.regular}} />
-        </View>
-
-        {/* Botones de Registro */}
-        <View style={styles.registerWrapper}>
-          <CardBase variant="solid">
-            <View style={styles.registerHeader}>
-              <Ionicons name="restaurant-outline" size={20} color={colors.textdark} />
-              <Text style={styles.registerTitle}> Registrar comida</Text>
-            </View>
-            
-            <View style={styles.registerButtons}>
-              {/* Tomar Foto - Card verde sólida */}
-              <CardBase variant="green" style={styles.registerCard}>
-                <View style={styles.cardContent}>
-                  <View style={styles.iconCircleLarge}>
-                    <Ionicons name="camera-outline" size={32} color={colors.textdark} />
-                  </View>
-                  <Text style={styles.cardTitle}>Tomar foto</Text>
-                  <Text style={styles.cardSubtitle}>Del plato</Text>
-                </View>
-              </CardBase>
-              
-              {/* Por Voz - Card con borde punteado */}
-              <View style={styles.registerCardOutline}>
-                <View style={styles.cardContent}>
-                  <View style={styles.iconCircleLargeOutline}>
-                    <Ionicons name="mic-outline" size={32} color={colors.textdark} />
-                  </View>
-                  <Text style={styles.cardTitleOutline}>Decir</Text>
-                  <Text style={styles.cardSubtitleOutline}>Lo que comiste</Text>
-                </View>
-              </View>
+            <View style={styles.nutrientsrow}>
+              <Badge text='proteínas'></Badge>
+              <Badge text='Carbohidratos'></Badge>
+              <Badge text='Grasas'></Badge>
             </View>
           </CardBase>
         </View>
+        
 
         {/* Espaciado final */}
         <View style={{ height: spacing.xl }} />
       </ScrollView>
-    </GradientBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  appContainer: {
+    flex: 1,
+    backgroundColor: colors.appBackground,
+  },
   container: {
     flex: 1,
   },
@@ -114,24 +86,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl * 3,  
+    paddingTop: spacing.xl * 3,
     paddingBottom: spacing.lg,
   },
   dateTitle: {
     fontSize: typography.size.title + 6,
     fontFamily: typography.fontfamily.bold,
-    color: colors.greenprimary,
+    color: colors.darkgreen,
     lineHeight: typography.size.title + 8,
   },
 
-  // Nutrient Pills
-  nutrientPills: {
+  nutrientsrow: {
     flexDirection: 'row',
-    paddingHorizontal: spacing.xl,
-    justifyContent: "center",
-    marginBottom: spacing.lg,
-    gap: spacing.md,
+    gap: spacing.sm,
+    justifyContent: 'center',
+    marginTop: 20,
   },
+
 
   // Calories Section
   caloriesSection: {
@@ -147,10 +118,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  
+
   // Izquierda - Porcentaje
   percentageSection: {
     flex: 1,
+    gap: spacing.xs,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.xs,
   },
   intakeLabel: {
@@ -163,8 +139,9 @@ const styles = StyleSheet.create({
     fontFamily: typography.fontfamily.bold,
     color: colors.textdark,
     lineHeight: typography.size.title + 20,
+    marginTop: spacing.md,
   },
-  
+
   // Derecha - Media Luna
   circleSection: {
     justifyContent: 'center',

@@ -1,6 +1,6 @@
 import { colors, radious, spacing, typography } from '@/styles/designSystem';
 import React from 'react';
-import { ActivityIndicator, Pressable, Text , StyleSheet } from 'react-native';
+import { ActivityIndicator, Pressable, Text , StyleSheet, View } from 'react-native';
 
 interface Props {
     text: string;                    // texto del botón
@@ -8,6 +8,8 @@ interface Props {
     disabled?: boolean;              // estado deshabilitado
     loading?: boolean;               // estado cargando
     fullWidth?: boolean;             // ocupa todo el ancho
+    icon?: React.ReactNode;          // icono opcional
+    iconPosition?: 'left' | 'right'; // posición del icono
 }
 
 
@@ -17,22 +19,31 @@ export const PrimaryButton = ({
     disabled = false,
     loading = false,
     fullWidth = false,
+    icon,
+    iconPosition = 'left',
 }: Props) => {
 
     return (
         <Pressable
             onPress={disabled || loading ? undefined : onPress}
             disabled={disabled || loading}
-            style={{
-                ...styles.button,
-                width: fullWidth ? '100%' : 'auto',
-                opacity: disabled ? 0.5 : 1,
-            }}
+            style={[
+                styles.button,
+                {
+                    width: fullWidth ? '100%' : undefined,
+                    alignSelf: fullWidth ? 'stretch' : 'center',
+                    opacity: disabled ? 0.5 : 1,
+                },
+            ]}
         >
             {loading ? (
                 <ActivityIndicator color={colors.textdark} />
             ) : (
-                <Text style={styles.text}>{text}</Text>
+                <View style={styles.content}>
+                    {icon && iconPosition === 'left' && icon}
+                    <Text style={styles.text}>{text}</Text>
+                    {icon && iconPosition === 'right' && icon}
+                </View>
             )}
         </Pressable>
 
@@ -49,7 +60,11 @@ const styles = StyleSheet.create ({
         justifyContent: "center",
         alignItems: 'center',
         minHeight: 48,
-
+    },
+    content: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.xs,
     },
     text: {
         fontFamily: typography.fontfamily.bold,
