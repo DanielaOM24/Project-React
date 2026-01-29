@@ -1,22 +1,76 @@
-import { ScrollView, View, Text, StyleSheet, Pressable } from 'react-native';
+import { ScrollView, View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Recipe } from '@/types/recipes';
+import { useEffect, useState } from 'react';
+import { recipesService } from '@/services/recipes.service';
+import { showToastFrom } from '@/utils/showToast';
 import { RECIPES_MOCK } from '@/data/recipes.mock';
+
+// MODO DESARROLLO: Cambia a false cuando la autenticación esté lista
+const USE_MOCK_DATA = true;
 
 export default function RecipeDetailScreen() {
     const { id } = useLocalSearchParams();
     const insets = useSafeAreaInsets();
-    
-    // Buscar la receta por ID
-    const recipe = RECIPES_MOCK.find(r => r.id === id) as Recipe;
+    const [recipe, setRecipe] = useState<Recipe | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
 
-    if (!recipe) {
+    useEffect(() => {
+        const fetchRecipe = async () => {
+            try {
+                setLoading(true);
+                
+                if (USE_MOCK_DATA) {
+                    // Simular delay de red
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                    
+                    // Buscar receta en datos mock
+                    const mockRecipe = RECIPES_MOCK.find(r => r.id === id);
+                    if (mockRecipe) {
+                        setRecipe(mockRecipe);
+                        console.log('Usando datos MOCK para receta:', mockRecipe.name);
+                    } else {
+                        setError(true);
+                    }
+                } else {
+                    // Usar API real
+                    const data = await recipesService.getRecipeById(id as string);
+                    setRecipe(data);
+                }
+            } catch (err) {
+                console.error('Error fetching recipe:', err);
+                setError(true);
+                showToastFrom.error.network();
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (id) {
+            fetchRecipe();
+        }
+    }, [id]);
+
+    if (loading) {
         return (
-            <View style={styles.container}>
-                <Text>Receta no encontrada</Text>
+            <View style={[styles.container, styles.centerContent]}>
+                <ActivityIndicator size="large" color="#4CAF50" />
+                <Text style={styles.loadingText}>Cargando receta...</Text>
+            </View>
+        );
+    }
+
+    if (error || !recipe) {
+        return (
+            <View style={[styles.container, styles.centerContent]}>
+                <Text style={styles.errorText}>No se pudo cargar la receta</Text>
+                <Pressable style={styles.backButton} onPress={() => router.back()}>
+                    <Text style={styles.backButtonText}>Volver</Text>
+                </Pressable>
             </View>
         );
     }
@@ -118,6 +172,33 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#fff',
+    },
+    centerContent: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    loadingText: {
+        marginTop: 16,
+        fontSize: 16,
+        color: '#666',
+    },
+    errorText: {
+        fontSize: 16,
+        color: '#666',
+        textAlign: 'center',
+        marginBottom: 20,
+    },
+    backButton: {
+        backgroundColor: '#4CAF50',
+        paddingHorizontal: 24,
+        paddingVertical: 12,
+        borderRadius: 8,
+    },
+    backButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
     heroContainer: {
         position: 'relative',

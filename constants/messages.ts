@@ -8,8 +8,8 @@ export const Messages = {
   // ─── SUCCESS ─────────────────────────────────────────────────────────────
   success: {
     onboarding: '¡Listo! Guardamos tu información y ya estás listo para empezar.',
-    mealRegistered: 'Tu comida quedó registrada 🍽️',
-    recipeSaved: 'Receta guardada en tu colección 📖',
+    mealRegistered: 'Tu comida quedó registrada',
+    recipeSaved: 'Receta guardada en tu colección',
     profileUpdated: 'Tu perfil se actualizó correctamente.',
     syncSuccess: 'Datos sincronizados. Todo está al día.',
     aiResponse: 'Listo, aquí tienes tu análisis.',
