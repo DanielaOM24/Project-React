@@ -1,98 +1,296 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import GradientBackground from '@/components/ui/GradientBackground';
+import { CardBase } from '@/components/ui/CardBase';
+import { Badge } from '@/components/ui/Badge';
+import { IconButton } from '@/components/buttons/IconButton';
+import { colors, radious, spacing, typography } from '@/styles/designSystem';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+export default function DashboardScreen() {
+  // Datos provisionales
+  const currentCalories = 950;
+  const totalCalories = 1700;
+  const caloriesLeft = totalCalories - currentCalories;
+  const percentage = (currentCalories / totalCalories) * 100;
 
-export default function HomeScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <GradientBackground type="darkPrimary">
+      <ScrollView
+        style={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.dateTitle}>Lunes,</Text>
+            <Text style={styles.dateTitle}>Enero 27</Text>
+          </View>
+        </View>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        {/* progreso de calorías */}
+        <View style={styles.caloriesSection}>
+          <CardBase variant="solid" style={styles.caloriesCard}>
+            <View style={styles.caloriesCardContent}>
+              {/* Izquierda - Porcentaje */}
+              <View style={styles.percentageSection}>
+                <Ionicons name="flash" size={24} color={colors.textdark} />
+                <Text style={styles.intakeLabel}>Consumo diario</Text>
+                <Text style={styles.percentageText}>{Math.round(percentage)}%</Text>
+              </View>
+              
+              {/* Derecha - Media Luna */}
+              <View style={styles.circleSection}>
+                <View style={styles.halfCircleContainer}>
+                  {/* Círculo de progreso */}
+                  <View style={styles.progressRing} />
+                  
+                  {/* Números centrados */}
+                  <View style={styles.caloriesNumbers}>
+                    <Text style={styles.currentCalories}>{currentCalories}</Text>
+                    <View style={styles.dividerLine} />
+                    <Text style={styles.totalCalories}>{totalCalories}</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </CardBase>
+        </View>
+
+        {/* Nutrientes Pills */}
+        <View style={styles.nutrientPills}>
+          <Badge text="Proteínas" variant="primary" />
+          <Badge text="Carbohidratos" variant="secondary" style={{ color: colors.secondaryText, fontFamily: typography.fontfamily.regular}} />
+          <Badge text="Grasas" variant="secondary" style={{ color: colors.secondaryText, fontFamily: typography.fontfamily.regular}} />
+        </View>
+
+        {/* Botones de Registro */}
+        <View style={styles.registerWrapper}>
+          <CardBase variant="solid">
+            <View style={styles.registerHeader}>
+              <Ionicons name="restaurant-outline" size={20} color={colors.textdark} />
+              <Text style={styles.registerTitle}> Registrar comida</Text>
+            </View>
+            
+            <View style={styles.registerButtons}>
+              {/* Tomar Foto - Card verde sólida */}
+              <CardBase variant="green" style={styles.registerCard}>
+                <View style={styles.cardContent}>
+                  <View style={styles.iconCircleLarge}>
+                    <Ionicons name="camera-outline" size={32} color={colors.textdark} />
+                  </View>
+                  <Text style={styles.cardTitle}>Tomar foto</Text>
+                  <Text style={styles.cardSubtitle}>Del plato</Text>
+                </View>
+              </CardBase>
+              
+              {/* Por Voz - Card con borde punteado */}
+              <View style={styles.registerCardOutline}>
+                <View style={styles.cardContent}>
+                  <View style={styles.iconCircleLargeOutline}>
+                    <Ionicons name="mic-outline" size={32} color={colors.textdark} />
+                  </View>
+                  <Text style={styles.cardTitleOutline}>Decir</Text>
+                  <Text style={styles.cardSubtitleOutline}>Lo que comiste</Text>
+                </View>
+              </View>
+            </View>
+          </CardBase>
+        </View>
+
+        {/* Espaciado final */}
+        <View style={{ height: spacing.xl }} />
+      </ScrollView>
+    </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xl * 3,  
+    paddingBottom: spacing.lg,
+  },
+  dateTitle: {
+    fontSize: typography.size.title + 6,
+    fontFamily: typography.fontfamily.bold,
+    color: colors.greenprimary,
+    lineHeight: typography.size.title + 8,
+  },
+
+  // Nutrient Pills
+  nutrientPills: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.xl,
+    justifyContent: "center",
+    marginBottom: spacing.lg,
+    gap: spacing.md,
+  },
+
+  // Calories Section
+  caloriesSection: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    marginBottom: spacing.md,
+  },
+  caloriesCard: {
+    padding: spacing.lg,
+  },
+  caloriesCardContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  
+  // Izquierda - Porcentaje
+  percentageSection: {
+    flex: 1,
+    gap: spacing.xs,
+  },
+  intakeLabel: {
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.semibold,
+    color: colors.textdark,
+  },
+  percentageText: {
+    fontSize: typography.size.title + 16,
+    fontFamily: typography.fontfamily.bold,
+    color: colors.textdark,
+    lineHeight: typography.size.title + 20,
+  },
+  
+  // Derecha - Media Luna
+  circleSection: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  halfCircleContainer: {
+    width: 100,
+    height: 100,
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  progressRing: {
+    position: 'absolute',
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 10,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderRightColor: colors.greenprimary,
+    borderTopColor: colors.greenprimary,
+    transform: [{ rotate: '135deg' }],
+  },
+  caloriesNumbers: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  dividerLine: {
+    width: 30,
+    height: 1,
+    backgroundColor: colors.textdark + '40',
+  },
+  currentCalories: {
+    fontSize: typography.size.subtitle,
+    fontFamily: typography.fontfamily.bold,
+    color: colors.textdark,
+  },
+  totalCalories: {
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.regular,
+    color: colors.textdark + 'CC',
+  },
+
+  // Register Section
+  registerWrapper: {
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+    marginBottom: spacing.lg,
+  },
+  registerHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.xs,
+    marginBottom: spacing.lg,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  registerTitle: {
+    fontSize: typography.size.subtitle,
+    fontFamily: typography.fontfamily.bold,
+    color: colors.textdark,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  registerButtons: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  registerCard: {
+    flex: 1,
+    minHeight: 160,
+    padding: spacing.md,
+  },
+  registerCardOutline: {
+    flex: 1,
+    minHeight: 160,
+    backgroundColor: 'transparent',
+    borderRadius: radious.lg,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: colors.darkgreen + '60',
+    padding: spacing.md,
+  },
+  cardContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  iconCircleLarge: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  iconCircleLargeOutline: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.greenprimary + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  cardTitle: {
+    fontSize: typography.size.subtitle,
+    fontFamily: typography.fontfamily.bold,
+    color: colors.textdark,
+    textAlign: 'center',
+  },
+  cardSubtitle: {
+    fontSize: typography.size.caption,
+    fontFamily: typography.fontfamily.regular,
+    color: colors.textdark,
+    textAlign: 'center',
+  },
+  cardTitleOutline: {
+    fontSize: typography.size.subtitle,
+    fontFamily: typography.fontfamily.bold,
+    color: colors.textdark,
+    textAlign: 'center',
+  },
+  cardSubtitleOutline: {
+    fontSize: typography.size.caption,
+    fontFamily: typography.fontfamily.regular,
+    color: colors.textdark,
+    textAlign: 'center',
   },
 });
