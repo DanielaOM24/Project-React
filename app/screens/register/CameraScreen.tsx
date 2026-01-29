@@ -1,8 +1,14 @@
+import React, { useRef, useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+} from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { useRef, useState } from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { takePhoto } from "../../sensores/sensorsManager";
+import { takePhoto } from "../../../sensores/sensorsManager";
+
 
 export default function CameraScreen() {
   const cameraRef = useRef<CameraView>(null);
@@ -13,16 +19,14 @@ export default function CameraScreen() {
 
   if (!permission.granted) {
     return (
-      <SafeAreaView>
-        <View style={styles.container}>
-          <Text style={styles.title}>
-            Se requiere permiso para usar la cámara
-          </Text>
-          <TouchableOpacity style={styles.button} onPress={requestPermission}>
-            <Text style={styles.buttonText}>Conceder permiso</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+      <View style={styles.container}>
+        <Text style={styles.title}>
+          Se requiere permiso para usar la cámara
+        </Text>
+        <TouchableOpacity style={styles.button} onPress={requestPermission}>
+          <Text style={styles.buttonText}>Conceder permiso</Text>
+        </TouchableOpacity>
+      </View>
     );
   }
 
@@ -91,3 +95,4 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
 });
+
