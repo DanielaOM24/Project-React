@@ -1,31 +1,29 @@
 /**
- * Pantalla de Chat con IA Nutricional
- * Para probar el servicio de chat de Nutrilens
+ * Chat con IA Nutricional — NutriLens
+ * Verde innovador, elegante y profesional. Solo texto por ahora.
  */
 
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import React, { useState } from 'react';
 import {
-  StyleSheet,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
+  ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { getChatResponse, ChatResponse } from '@/ai/chat.service';
-import { UserContext } from '@/ai/prompts';
+import { getChatResponse } from '@/ai/chat.service';
 import { isAPIKeyConfigured } from '@/ai/config';
+import { UserContext } from '@/ai/prompts';
+import { InnovationColors } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
-// Contexto de usuario de prueba (esto vendrá del onboarding)
 const testUserContext: UserContext = {
   objetivo: 'perder peso',
   dieta: 'sin restricciones',
@@ -38,376 +36,384 @@ interface Message {
   id: string;
   text: string;
   isUser: boolean;
-  response?: ChatResponse;
   timestamp: Date;
 }
 
+const IC = InnovationColors;
+
 export default function AIChatScreen() {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const isDark = colorScheme === 'dark';
+  const c = IC[isDark ? 'dark' : 'light'];
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  // Nota: En React 19 el ref de FlatList tiene problemas de tipos
 
   const sendMessage = async () => {
     if (!inputText.trim() || isLoading) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      text: inputText.trim(),
-      isUser: true,
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, userMessage]);
+    const text = inputText.trim();
+    setMessages(prev => [
+      ...prev,
+      { id: Date.now().toString(), text, isUser: true, timestamp: new Date() },
+    ]);
     setInputText('');
     setIsLoading(true);
 
     try {
-      // Obtener respuesta de la IA (usa OpenAI si está configurado, sino mock)
-      const response = await getChatResponse(userMessage.text, testUserContext);
-
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: response.message,
-        isUser: false,
-        response,
-        timestamp: new Date(),
-      };
-
-      setMessages(prev => [...prev, aiMessage]);
-    } catch (error) {
-      console.error('Error al obtener respuesta:', error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: 'Lo siento, hubo un error al procesar tu mensaje. Por favor, intenta de nuevo.',
-        isUser: false,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      const res = await getChatResponse(text, testUserContext);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          text: res.message,
+          isUser: false,
+          timestamp: new Date(),
+        },
+      ]);
+    } catch (e) {
+      console.error(e);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          text: 'No pude procesar tu mensaje. Revisa la conexión e inténtalo de nuevo.',
+          isUser: false,
+          timestamp: new Date(),
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const suggestions = [
+    '¿Qué puedo comer para cenar? 🥗',
+    '¿Cómo aumento mi proteína? 💪',
+    'Ideas de snacks saludables 🥜',
+  ];
+
   const renderMessage = ({ item }: { item: Message }) => (
     <View
       style={[
-        styles.messageContainer,
-        item.isUser ? styles.userMessage : styles.aiMessage,
-        {
-          backgroundColor: item.isUser
-            ? colors.tint
-            : colorScheme === 'dark' ? '#2a2a2a' : '#f0f0f0',
-        },
+        styles.msgRow,
+        item.isUser ? styles.msgRowUser : styles.msgRowAI,
       ]}
     >
-      <ThemedText
-        style={[
-          styles.messageText,
-          { color: item.isUser ? '#fff' : colors.text },
-        ]}
-      >
-        {item.text}
-      </ThemedText>
-
-      {/* Mostrar detalles adicionales de la respuesta de IA */}
-      {!item.isUser && item.response && (
-        <View style={styles.responseDetails}>
-          {item.response.recomendaciones && item.response.recomendaciones.length > 0 && (
-            <View style={styles.section}>
-              <ThemedText style={styles.sectionTitle}>📋 Recomendaciones:</ThemedText>
-              <Text style={[styles.listItem, { color: colors.text }]}>
-                {item.response.recomendaciones.map(rec => `• ${rec}`).join('\n')}
-              </Text>
-            </View>
-          )}
-
-          {item.response.tips && item.response.tips.length > 0 && (
-            <View style={styles.section}>
-              <ThemedText style={styles.sectionTitle}>💡 Tips:</ThemedText>
-              <Text style={[styles.listItem, { color: colors.text }]}>
-                {item.response.tips.map(tip => `• ${tip}`).join('\n')}
-              </Text>
-            </View>
-          )}
-
-          {item.response.preguntasSeguimiento && item.response.preguntasSeguimiento.length > 0 && (
-            <View style={styles.section}>
-              <ThemedText style={styles.sectionTitle}>❓ Preguntas:</ThemedText>
-              {item.response.preguntasSeguimiento.map((pregunta, index) => (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() => setInputText(pregunta)}
-                  style={styles.questionButton}
-                >
-                  <ThemedText style={[styles.listItem, styles.questionText]}>
-                    {pregunta}
-                  </ThemedText>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
+      {!item.isUser && (
+        <View style={[styles.avatar, { backgroundColor: c.surfaceElevated }]}>
+          <MaterialIcons name="eco" size={18} color={c.primary} />
         </View>
       )}
+      <View
+        style={[
+          styles.bubble,
+          item.isUser ? styles.bubbleUser : styles.bubbleAI,
+          {
+            backgroundColor: item.isUser ? c.primary : c.surfaceCard,
+            borderColor: item.isUser ? 'transparent' : c.border,
+            ...(Platform.OS === 'ios'
+              ? {
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: isDark ? 0.25 : 0.06,
+                  shadowRadius: 12,
+                }
+              : { elevation: 3 }),
+          },
+        ]}
+      >
+        <Text
+          style={[styles.bubbleText, { color: item.isUser ? '#fff' : c.text }]}
+        >
+          {item.text}
+        </Text>
+      </View>
     </View>
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <ThemedView style={styles.header}>
-        <ThemedText type="title" style={styles.headerTitle}>
-          🥗 NutriLens AI
-        </ThemedText>
-        <ThemedText style={styles.headerSubtitle}>
-          Tu asistente nutricional
-        </ThemedText>
-      </ThemedView>
-
-      {/* Info del contexto de prueba */}
-      <View style={[styles.contextInfo, { 
-        backgroundColor: isAPIKeyConfigured() 
-          ? (colorScheme === 'dark' ? '#1a2a1a' : '#e8f5e9')
-          : (colorScheme === 'dark' ? '#2a2a1a' : '#fff3e0')
-      }]}>
-        <ThemedText style={styles.contextText}>
-          {isAPIKeyConfigured() ? '🟢 OpenAI conectado' : '🟡 Modo mock (configura API key)'} | Objetivo: {testUserContext.objetivo}
-        </ThemedText>
-      </View>
-
-      <KeyboardAvoidingView
-        style={styles.chatContainer}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={100}
-      >
-        {messages.length === 0 ? (
-          <View style={styles.emptyState}>
-            <ThemedText style={styles.emptyText}>
-              ¡Hola! Soy tu asistente nutricional. 👋
-            </ThemedText>
-            <ThemedText style={styles.emptySubtext}>
-              Pregúntame sobre nutrición, recetas saludables, o pídeme consejos para alcanzar tus objetivos.
-            </ThemedText>
-            <View style={styles.suggestionsContainer}>
-              <ThemedText style={styles.suggestionsTitle}>Prueba preguntar:</ThemedText>
-              {[
-                '¿Qué puedo comer para cenar?',
-                '¿Cómo puedo aumentar mi proteína?',
-                'Dame ideas de snacks saludables',
-              ].map((suggestion, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={[styles.suggestionButton, { borderColor: colors.tint }]}
-                  onPress={() => setInputText(suggestion)}
-                >
-                  <ThemedText style={[styles.suggestionText, { color: colors.tint }]}>
-                    {suggestion}
-                  </ThemedText>
-                </TouchableOpacity>
-              ))}
+    <View style={[styles.screen, { backgroundColor: c.surface }]}>
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <View style={styles.headerWrap}>
+          <View style={[styles.header, { backgroundColor: c.primaryDark }]} />
+          <View style={[styles.headerAccent, { backgroundColor: c.primary }]} />
+          <View style={styles.headerContent}>
+            <View style={[styles.logoIcon, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
+              <MaterialIcons name="restaurant" size={26} color="#fff" />
+            </View>
+            <View>
+              <Text style={styles.logoTitle}>NutriLens</Text>
+              <Text style={styles.logoSub}>Asistente nutricional</Text>
             </View>
           </View>
-        ) : (
-          <FlatList
-            data={messages}
-            renderItem={renderMessage}
-            keyExtractor={item => item.id}
-            contentContainerStyle={styles.messagesList}
-            inverted={false}
-          />
-        )}
-
-        {isLoading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color={colors.tint} />
-            <ThemedText style={styles.loadingText}>Pensando...</ThemedText>
-          </View>
-        )}
-
-        <View style={[styles.inputContainer, { borderTopColor: colors.icon }]}>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colorScheme === 'dark' ? '#2a2a2a' : '#f5f5f5',
-                color: colors.text,
-              },
-            ]}
-            placeholder="Escribe tu mensaje..."
-            placeholderTextColor={colors.icon}
-            value={inputText}
-            onChangeText={setInputText}
-            multiline
-            maxLength={500}
-            onSubmitEditing={sendMessage}
-          />
-          <TouchableOpacity
-            style={[
-              styles.sendButton,
-              { backgroundColor: inputText.trim() ? colors.tint : colors.icon },
-            ]}
-            onPress={sendMessage}
-            disabled={!inputText.trim() || isLoading}
-          >
-            <ThemedText style={styles.sendButtonText}>➤</ThemedText>
-          </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+
+        <View style={[styles.pill, { backgroundColor: c.surfaceElevated, borderColor: c.border }]}>
+          <View style={[styles.pillDot, { backgroundColor: isAPIKeyConfigured() ? c.accent : '#eab308' }]} />
+          <Text style={[styles.pillText, { color: c.textSecondary }]}>
+            {isAPIKeyConfigured() ? 'Gemini' : 'Demo'} · {testUserContext.objetivo}
+          </Text>
+        </View>
+
+        <KeyboardAvoidingView
+          style={styles.chat}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={100}
+        >
+          {messages.length === 0 ? (
+            <View style={styles.empty}>
+              <View style={[styles.emptyIconBg, { backgroundColor: c.surfaceElevated }]} />
+              <View style={[styles.emptyIcon, { backgroundColor: c.surfaceCard, borderColor: c.border }]}>
+                <Text style={styles.emptyEmoji}>🥗</Text>
+              </View>
+              <Text style={[styles.emptyTitle, { color: c.text }]}>
+                ¡Hola! Soy tu asistente nutricional
+              </Text>
+              <Text style={[styles.emptyDesc, { color: c.textSecondary }]}>
+                Pregúntame sobre nutrición, recetas saludables o consejos para tus objetivos. 💬
+              </Text>
+              <Text style={[styles.suggestLabel, { color: c.muted }]}>Prueba preguntar</Text>
+              <View style={styles.suggestions}>
+                {suggestions.map((s, i) => (
+                  <TouchableOpacity
+                    key={i}
+                    onPress={() => setInputText(s)}
+                    style={[styles.suggestionChip, { backgroundColor: c.surfaceCard, borderColor: c.border }]}
+                  >
+                    <Text style={[styles.suggestionText, { color: c.textSecondary }]}>{s}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          ) : (
+            <FlatList
+              data={messages}
+              renderItem={renderMessage}
+              keyExtractor={item => item.id}
+              contentContainerStyle={styles.list}
+              showsVerticalScrollIndicator={false}
+            />
+          )}
+
+          {isLoading && (
+            <View style={[styles.loading, { backgroundColor: c.surfaceCard, borderColor: c.border }]}>
+              <ActivityIndicator size="small" color={c.primary} />
+              <Text style={[styles.loadingText, { color: c.textSecondary }]}>Pensando…</Text>
+            </View>
+          )}
+
+          <View style={[styles.inputWrap, { backgroundColor: c.surface, borderColor: c.border }]}>
+            <View style={[styles.inputRow, { backgroundColor: c.surfaceCard, borderColor: c.border }]}>
+              <TextInput
+                style={[styles.input, { color: c.text }]}
+                placeholder="Escribe tu mensaje…"
+                placeholderTextColor={c.muted}
+                value={inputText}
+                onChangeText={setInputText}
+                multiline
+                maxLength={500}
+                onSubmitEditing={sendMessage}
+              />
+              <TouchableOpacity
+                onPress={sendMessage}
+                disabled={!inputText.trim() || isLoading}
+                style={[
+                  styles.sendBtn,
+                  { backgroundColor: inputText.trim() && !isLoading ? c.primary : c.border },
+                ]}
+              >
+                <MaterialIcons
+                  name="send"
+                  size={20}
+                  color={inputText.trim() && !isLoading ? '#fff' : c.muted}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  screen: { flex: 1 },
+  safe: { flex: 1 },
+
+  headerWrap: {
+    position: 'relative',
+    paddingTop: 12,
+    paddingBottom: 24,
+    paddingHorizontal: 20,
+    overflow: 'hidden',
   },
   header: {
-    padding: 16,
-    paddingBottom: 8,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 120,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
   },
-  headerTitle: {
-    fontSize: 28,
+  headerAccent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 90,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    opacity: 0.85,
   },
-  headerSubtitle: {
-    opacity: 0.7,
-    marginTop: 4,
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
   },
-  contextInfo: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginHorizontal: 16,
-    borderRadius: 8,
+  logoIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  contextText: {
-    fontSize: 12,
-    opacity: 0.8,
+  logoTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#fff',
+    letterSpacing: 0.5,
   },
-  chatContainer: {
-    flex: 1,
-  },
-  messagesList: {
-    padding: 16,
-    paddingBottom: 8,
-  },
-  messageContainer: {
-    maxWidth: '85%',
-    padding: 12,
-    borderRadius: 16,
-    marginBottom: 12,
-  },
-  userMessage: {
-    alignSelf: 'flex-end',
-    borderBottomRightRadius: 4,
-  },
-  aiMessage: {
-    alignSelf: 'flex-start',
-    borderBottomLeftRadius: 4,
-  },
-  messageText: {
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  responseDetails: {
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.1)',
-  },
-  section: {
-    marginTop: 8,
-  },
-  sectionTitle: {
-    fontWeight: '600',
-    marginBottom: 4,
-    fontSize: 14,
-  },
-  listItem: {
-    fontSize: 14,
-    marginLeft: 8,
+  logoSub: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.9)',
     marginTop: 2,
-    lineHeight: 20,
   },
-  questionButton: {
-    marginTop: 4,
-  },
-  questionText: {
-    color: '#0a7ea4',
-    textDecorationLine: 'underline',
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
+
+  pill: {
+    flexDirection: 'row',
     alignItems: 'center',
-    padding: 32,
-  },
-  emptyText: {
-    fontSize: 20,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  emptySubtext: {
-    fontSize: 15,
-    opacity: 0.7,
-    textAlign: 'center',
-    marginTop: 8,
-    lineHeight: 22,
-  },
-  suggestionsContainer: {
-    marginTop: 24,
-    width: '100%',
-  },
-  suggestionsTitle: {
-    fontSize: 14,
-    opacity: 0.6,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  suggestionButton: {
-    borderWidth: 1,
+    alignSelf: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    marginBottom: 8,
+    marginTop: -8,
+    gap: 8,
+    borderWidth: 1,
   },
-  suggestionText: {
+  pillDot: { width: 8, height: 8, borderRadius: 4 },
+  pillText: { fontSize: 12, fontWeight: '600' },
+
+  chat: { flex: 1 },
+  empty: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  emptyIconBg: {
+    position: 'absolute',
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    opacity: 0.6,
+  },
+  emptyIcon: {
+    width: 88,
+    height: 88,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    marginBottom: 20,
+  },
+  emptyEmoji: { fontSize: 40 },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
     textAlign: 'center',
-    fontSize: 14,
   },
-  loadingContainer: {
+  emptyDesc: {
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 21,
+    marginTop: 8,
+  },
+  suggestLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 28,
+    marginBottom: 10,
+  },
+  suggestions: { gap: 8, width: '100%' },
+  suggestionChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  suggestionText: { fontSize: 14 },
+
+  list: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 24 },
+  msgRow: { flexDirection: 'row', marginBottom: 12, alignItems: 'flex-end' },
+  msgRowUser: { justifyContent: 'flex-end' },
+  msgRowAI: { justifyContent: 'flex-start' },
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+    marginBottom: 4,
+  },
+  bubble: {
+    maxWidth: '80%',
+    padding: 14,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  bubbleUser: { borderBottomRightRadius: 6 },
+  bubbleAI: { borderBottomLeftRadius: 6 },
+  bubbleText: { fontSize: 15, lineHeight: 22 },
+
+  loading: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 8,
+    paddingVertical: 10,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    borderRadius: 16,
+    gap: 8,
+    borderWidth: 1,
   },
-  loadingText: {
-    marginLeft: 8,
-    opacity: 0.7,
-  },
-  inputContainer: {
-    flexDirection: 'row',
+  loadingText: { fontSize: 13, fontWeight: '600' },
+
+  inputWrap: {
     padding: 12,
     borderTopWidth: 1,
+  },
+  inputRow: {
+    flexDirection: 'row',
     alignItems: 'flex-end',
+    borderRadius: 24,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   input: {
     flex: 1,
-    borderRadius: 20,
-    paddingHorizontal: 16,
+    paddingHorizontal: 4,
     paddingVertical: 10,
     maxHeight: 100,
     fontSize: 15,
   },
-  sendButton: {
+  sendBtn: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 8,
-  },
-  sendButtonText: {
-    color: '#fff',
-    fontSize: 20,
+    justifyContent: 'center',
   },
 });

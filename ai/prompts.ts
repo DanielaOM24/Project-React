@@ -1,181 +1,77 @@
 /**
- * Prompts base para los servicios de IA de Nutrilens
- * 
- * Este archivo define los 3 casos de uso principales:
- * 1. Chat nutricional
- * 2. Análisis de imagen de comida
- * 3. Análisis de audio (descripción hablada)
+ * Prompts para NutriLens — cortos, directos, amigables.
+ * Casos: chat nutricional, análisis de imagen de comida, audio (descripción hablada).
  */
 
-/**
- * Contexto del usuario obtenido del onboarding
- * Estos datos serán proporcionados por Aleja
- */
 export interface UserContext {
-  /** Objetivo principal del usuario (ej: "perder peso", "ganar masa muscular", "mantener peso") */
   objetivo: string;
-  /** Tipo de dieta que sigue (ej: "vegetariana", "vegana", "keto", "sin restricciones") */
   dieta: string;
-  /** Comidas preferidas o que consume regularmente */
   comidasPreferidas?: string[];
-  /** Restricciones alimentarias o alergias */
   restricciones?: string[];
-  /** Información adicional relevante */
   infoAdicional?: string;
 }
 
-/**
- * Construye el contexto del usuario en formato legible para la IA
- */
 function buildUserContext(context: UserContext): string {
-  let contextText = `Mi objetivo es: ${context.objetivo}. `;
-  contextText += `Sigo una dieta ${context.dieta}.`;
-  
-  if (context.comidasPreferidas && context.comidasPreferidas.length > 0) {
-    contextText += ` Me gusta comer: ${context.comidasPreferidas.join(', ')}.`;
-  }
-  
-  if (context.restricciones && context.restricciones.length > 0) {
-    contextText += ` Tengo estas restricciones: ${context.restricciones.join(', ')}.`;
-  }
-  
-  if (context.infoAdicional) {
-    contextText += ` ${context.infoAdicional}`;
-  }
-  
-  return contextText;
+  let s = `Objetivo: ${context.objetivo}. Dieta: ${context.dieta}.`;
+  if (context.comidasPreferidas?.length)
+    s += ` Gusta: ${context.comidasPreferidas.join(', ')}.`;
+  if (context.restricciones?.length)
+    s += ` Restricciones: ${context.restricciones.join(', ')}.`;
+  if (context.infoAdicional) s += ` ${context.infoAdicional}`;
+  return s;
 }
 
-// ============================================================================
-// CASO 1: CHAT NUTRICIONAL
-// ============================================================================
+// --- CHAT NUTRICIONAL ---
 
 /**
- * Genera el prompt base para el chat nutricional
- * 
- * @param userContext - Contexto del usuario del onboarding
- * @param userMessage - Mensaje del usuario en la conversación
- * @returns Prompt completo para enviar a la IA
+ * System prompt para el chat. El mensaje del usuario va en contents (no aquí).
  */
-export function buildNutritionChatPrompt(
-  userContext: UserContext,
-  userMessage: string
-): string {
-  const context = buildUserContext(userContext);
-  
-  return `Eres un asistente nutricional amigable y experto. Tu trabajo es ayudar a las personas a alcanzar sus objetivos de salud de manera clara y práctica.
+export function buildNutritionChatSystemPrompt(userContext: UserContext): string {
+  const ctx = buildUserContext(userContext);
+  return `Eres un nutricionista amigable, cercano y profesional. Tu tono es cálido y alentador.
 
-CONTEXTO DEL USUARIO:
-${context}
+Usuario: ${ctx}
 
-INSTRUCCIONES:
-- Responde de forma natural y conversacional, como si fueras un nutricionista amigable
-- Usa lenguaje simple y evita términos técnicos complicados
-- Mantén tus respuestas cortas y directas (máximo 3-4 párrafos)
-- Sé específico y práctico con tus consejos
-- Si no sabes algo, admítelo honestamente
-- Enfócate en ayudar al usuario a alcanzar su objetivo: ${userContext.objetivo}
-
-MENSAJE DEL USUARIO:
-${userMessage}
-
-RESPUESTA:`;
+Reglas:
+- Usa emojis de comida, salud o bienestar (🍎🥗🥑💪✨🩺 etc.) de forma natural en tus respuestas. No abuses; 1-3 emojis por mensaje suelen bastar.
+- Respuestas de 3-5 oraciones: útiles, concretas y fáciles de leer. Ni demasiado cortas ni párrafos largos.
+- Lenguaje simple, cercano y profesional. Evita tecnicismos.
+- Enfócate en el objetivo del usuario (${userContext.objetivo}).
+- Si no sabes algo, dilo con honestidad y cercanía.`;
 }
 
-// ============================================================================
-// CASO 2: ANÁLISIS DE IMAGEN DE COMIDA
-// ============================================================================
+// --- ANÁLISIS DE IMAGEN DE COMIDA ---
 
 /**
- * Genera el prompt base para analizar una imagen de comida
- * 
- * @param userContext - Contexto del usuario del onboarding
- * @param imageDescription - Descripción de la imagen (si está disponible) o null
- * @returns Prompt completo para enviar a la IA
+ * System prompt para analizar una foto de comida.
+ * Ejemplo: "🍗 Parece pollo con arroz. Buena fuente de proteína. Puedes acompañarlo con verduras."
  */
-export function buildFoodImageAnalysisPrompt(
-  userContext: UserContext,
-  imageDescription?: string | null
-): string {
-  const context = buildUserContext(userContext);
-  
-  let prompt = `Eres un experto en análisis nutricional de alimentos. Analiza la imagen de comida que se te proporciona y da información útil al usuario.
+export function buildFoodImageAnalysisSystemPrompt(userContext: UserContext): string {
+  const ctx = buildUserContext(userContext);
+  return `Analizas fotos de comida y das una sugerencia nutricional breve y amigable.
 
-CONTEXTO DEL USUARIO:
-${context}
+Usuario: ${ctx}
 
-INSTRUCCIONES:
-- Identifica los alimentos principales en la imagen
-- Estima las porciones de manera aproximada
-- Proporciona información nutricional básica (calorías aproximadas, macronutrientes principales)
-- Evalúa si esta comida se alinea con el objetivo del usuario: ${userContext.objetivo}
-- Sugiere mejoras o alternativas si es necesario
-- Usa lenguaje simple y directo
-- Mantén la respuesta concisa (máximo 4-5 párrafos)
-- Si no puedes identificar algo claramente, dilo con honestidad
+Responde en 1-3 oraciones:
+1) Qué parece ser la comida (estimación simple, no exacta).
+2) Una sugerencia nutricional útil y breve.
 
-`;
-
-  if (imageDescription) {
-    prompt += `DESCRIPCIÓN DE LA IMAGEN:\n${imageDescription}\n\n`;
-  }
-  
-  prompt += `ANÁLISIS:`;
-  
-  return prompt;
+Usa 1-2 emojis de comida o salud (🍗🥗🥑🍚 etc.) de forma natural. Sé directo, amigable y profesional.`;
 }
 
-// ============================================================================
-// CASO 3: ANÁLISIS DE AUDIO (DESCRIPCIÓN HABLADA)
-// ============================================================================
+// --- AUDIO (DESCRIPCIÓN HABLADA) ---
 
-/**
- * Genera el prompt base para analizar una descripción hablada de comida
- * 
- * @param userContext - Contexto del usuario del onboarding
- * @param audioTranscript - Transcripción del audio del usuario
- * @returns Prompt completo para enviar a la IA
- */
-export function buildAudioDescriptionPrompt(
-  userContext: UserContext,
-  audioTranscript: string
-): string {
-  const context = buildUserContext(userContext);
-  
-  return `Eres un asistente nutricional que analiza descripciones habladas de comidas. El usuario te está describiendo lo que comió o va a comer.
+export function buildAudioDescriptionSystemPrompt(userContext: UserContext): string {
+  const ctx = buildUserContext(userContext);
+  return `Analizas descripciones habladas de comidas. Usuario: ${ctx}.
 
-CONTEXTO DEL USUARIO:
-${context}
-
-INSTRUCCIONES:
-- Analiza la descripción hablada del usuario
-- Identifica los alimentos mencionados
-- Estima las porciones basándote en las descripciones del usuario
-- Proporciona información nutricional aproximada (calorías, macronutrientes)
-- Evalúa si esta comida se alinea con el objetivo: ${userContext.objetivo}
-- Ofrece consejos prácticos y específicos
-- Usa lenguaje natural y conversacional
-- Mantén la respuesta breve y útil (máximo 4-5 párrafos)
-- Si falta información importante, haz preguntas claras
-
-DESCRIPCIÓN DEL USUARIO:
-${audioTranscript}
-
-ANÁLISIS Y RECOMENDACIONES:`;
+Responde en 2-4 oraciones: qué comió o comerá, estimación simple y un consejo práctico. Usa 1-2 emojis de comida o salud de forma natural. Sé directo, amigable y cercano.`;
 }
 
-// ============================================================================
-// FUNCIONES AUXILIARES
-// ============================================================================
+// --- HELPERS ---
 
-/**
- * Tipo para identificar el caso de uso de IA
- */
 export type AIUseCase = 'chat' | 'image' | 'audio';
 
-/**
- * Función helper que construye el prompt según el caso de uso
- */
 export function buildPrompt(
   useCase: AIUseCase,
   userContext: UserContext,
@@ -184,12 +80,12 @@ export function buildPrompt(
 ): string {
   switch (useCase) {
     case 'chat':
-      return buildNutritionChatPrompt(userContext, input);
+      return buildNutritionChatSystemPrompt(userContext);
     case 'image':
-      return buildFoodImageAnalysisPrompt(userContext, imageDescription);
+      return buildFoodImageAnalysisSystemPrompt(userContext);
     case 'audio':
-      return buildAudioDescriptionPrompt(userContext, input);
+      return buildAudioDescriptionSystemPrompt(userContext);
     default:
-      throw new Error(`Caso de uso no válido: ${useCase}`);
+      throw new Error(`Caso no válido: ${useCase}`);
   }
 }

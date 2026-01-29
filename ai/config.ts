@@ -1,29 +1,11 @@
 /**
- * Configuración de IA para Nutrilens
- * 
- * IMPORTANTE: Nunca subas tu API key al repositorio.
- * Usa variables de entorno en producción.
- */
-
-/**
- * Configuración de OpenAI
+ * Configuración de Gemini (Google AI)
  */
 export const AI_CONFIG = {
-  /**
-   * API Key de OpenAI
-   * 
-   * Para desarrollo: Puedes poner tu key aquí temporalmente
-   * Para producción: Usa variables de entorno
-   * 
-   * Obtén tu API key en: https://platform.openai.com/api-keys
-   */
-  OPENAI_API_KEY: process.env.EXPO_PUBLIC_OPENAI_API_KEY || '',
 
-  /**
-   * Modelo de OpenAI a utilizar
-   * Opciones: 'gpt-4o-mini' (más barato), 'gpt-4o' (más inteligente), 'gpt-3.5-turbo' (legacy)
-   */
-  MODEL: 'gpt-4o-mini',
+  GEMINI_API_KEY: process.env.EXPO_PUBLIC_GEMINI_API_KEY || '',
+
+  MODEL: 'gemini-2.0-flash',
 
   /**
    * Temperatura para las respuestas (0-2)
@@ -33,15 +15,16 @@ export const AI_CONFIG = {
    */
   TEMPERATURE: 0.7,
 
-  /**
-   * Máximo de tokens en la respuesta
-   */
-  MAX_TOKENS: 1000,
+  /** Máximo de tokens en la respuesta del chat */
+  MAX_TOKENS: 500,
+
+  /** Máximo de tokens en análisis de imagen */
+  MAX_TOKENS_IMAGE: 200,
 };
 
 /**
  * Verifica si la API key está configurada
  */
 export function isAPIKeyConfigured(): boolean {
-  return AI_CONFIG.OPENAI_API_KEY.length > 0;
+  return AI_CONFIG.GEMINI_API_KEY.length > 0;
 }
