@@ -6,7 +6,7 @@ export const colors = {
 
     // background para cards, buttons and badges 
     // (para fondo de app usar los gradients)
-    background: '#0E2A25', // verde oscuro 
+    background: '#3e7c7152', // verde oscuro
 
     // text
     primaryText: '#ffffff',
