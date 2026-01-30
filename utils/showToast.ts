@@ -106,8 +106,13 @@ export const showToastFrom = {
       showError(custom ? { text: custom } : { messageKey: 'error.invalidFields' }),
     invalidFieldsGeneric: () => showError({ messageKey: 'error.invalidFieldsGeneric' }),
     network: () => showError({ messageKey: 'error.network' }),
+    networkGeneric: () => showError({ messageKey: 'error.networkGeneric' }),
+    serverDown: () => showError({ messageKey: 'error.serverDown' }),
     aiNoResponse: () => showError({ messageKey: 'error.aiNoResponse' }),
+    aiNotUnderstood: () => showError({ messageKey: 'error.aiNotUnderstood' }),
     saveFailed: () => showError({ messageKey: 'error.saveFailed' }),
+    loadFailed: () => showError({ messageKey: 'error.loadFailed' }),
+    timeout: () => showError({ messageKey: 'error.timeout' }),
     generic: (custom?: string) =>
       showError(custom ? { text: custom } : { messageKey: 'error.generic' }),
   },
@@ -116,6 +121,9 @@ export const showToastFrom = {
     loading: () => showInfo({ messageKey: 'info.loading' }),
     aiThinking: () => showInfo({ messageKey: 'info.aiThinking' }),
     offlineData: () => showInfo({ messageKey: 'info.offlineData' }),
+    loadingRecipes: () => showInfo({ messageKey: 'info.loadingRecipes' }),
+    savingMeal: () => showInfo({ messageKey: 'info.savingMeal' }),
+    processing: () => showInfo({ messageKey: 'info.processing' }),
   },
   warning: {
     unsavedChanges: () => showWarning({ messageKey: 'warning.unsavedChanges' }),
