@@ -1,16 +1,85 @@
 import { Badge } from '@/components/ui/Badge';
 import { CardBase } from '@/components/ui/CardBase';
+import { Divider } from '@/components/ui/Divider';
+import { MealHistory, MealSummary, UserProfile, getMealHistory, getMealSummary, getUserProfile } from '@/services/dashboard';
 import { colors, radious, spacing, typography } from '@/styles/designSystem';
+import { formatDate, getMealIcon, translateGoal, translateMealType } from '@/utils/translations';
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function DashboardScreen() {
-  // Datos provisionales
-  const currentCalories = 950;
-  const totalCalories = 1700;
-  const caloriesLeft = totalCalories - currentCalories;
-  const percentage = (currentCalories / totalCalories) * 100;
+  // Estados para los datos de la API
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [mealSummary, setMealSummary] = useState<MealSummary | null>(null);
+  const [mealHistory, setMealHistory] = useState<MealHistory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fecha actual
+  const currentDate = formatDate(new Date());
+
+  // Cargar datos de la API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [profile, summary, history] = await Promise.all([
+          getUserProfile(),
+          getMealSummary(),
+          getMealHistory(),
+        ]);
+        setUserProfile(profile);
+        setMealSummary(summary);
+        setMealHistory(history);
+        setError(null);
+      } catch (err) {
+        console.error('Error al cargar datos:', err);
+        setError('Error al cargar los datos');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Mostrar loading
+  if (loading) {
+    return (
+      <View style={[styles.appContainer, styles.centerContent]}>
+        <ActivityIndicator size="large" color={colors.greenprimary} />
+        <Text style={styles.loadingText}>Cargando...</Text>
+      </View>
+    );
+  }
+
+  // Mostrar error
+  if (error || !mealSummary || !userProfile) {
+    return (
+      <View style={[styles.appContainer, styles.centerContent]}>
+        <Text style={styles.errorText}>{error || 'Error al cargar datos'}</Text>
+      </View>
+    );
+  }
+
+  // Calcular valores
+  const caloriesLeft = mealSummary.calorieGoal - mealSummary.totalCalories;
+  const percentage = mealSummary.calorieProgressPercentage;
+
+  // Agrupar comidas por tipo (BREAKFAST, LUNCH, DINNER, SNACK)
+  const mealsByType = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'].map(type => {
+    const meal = mealHistory.find(m => m.mealType === type);
+    return {
+      id: meal?.id || type,
+      tipo: translateMealType(type),
+      icon: getMealIcon(type),
+      calorias: meal?.nutritionProfile.calories || 0,
+      proteinas: meal?.nutritionProfile.protein || 0,
+      carbohidratos: meal?.nutritionProfile.carbs || 0,
+      grasas: meal?.nutritionProfile.fats || 0,
+    };
+  });
 
   return (
     <View style={styles.appContainer}>
@@ -18,14 +87,18 @@ export default function DashboardScreen() {
         style={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header (después se debe llamar displayname api/user/profile  ) */}
+        {/* Header */}
         <View style={styles.header}>
           <View>
             <Text style={styles.dateTitle}>Hola,</Text>
-            <Text style={styles.dateTitle}>Esteban</Text>
+            <Text style={styles.dateTitle}>{userProfile.displayName}</Text>
           </View>
           <View>
-            <Badge variant='secondary' text='Objetivo'></Badge>
+            <Badge 
+              variant="secondary" 
+              text={translateGoal(userProfile.goal)}
+              icon={<Ionicons name="trophy" size={16} color={colors.darkgreen} />}
+            />
           </View>
         </View>
 
@@ -37,7 +110,7 @@ export default function DashboardScreen() {
               <View style={styles.percentageSection}>
                 <View style={styles.dateRow}>
                   <Ionicons name="calendar-outline" size={20} color={colors.textdark} />
-                  <Text style={styles.intakeLabel}>Jueves, Enero 29</Text>
+                  <Text style={styles.intakeLabel}>{currentDate}</Text>
                 </View>
                 <Text style={styles.percentageText}>{Math.round(percentage)}%</Text>
               </View>
@@ -50,21 +123,87 @@ export default function DashboardScreen() {
 
                   {/* Números centrados */}
                   <View style={styles.caloriesNumbers}>
-                    <Text style={styles.currentCalories}>{currentCalories}</Text>
+                    <Text style={styles.currentCalories}>{mealSummary.totalCalories}</Text>
                     <View style={styles.dividerLine} />
-                    <Text style={styles.totalCalories}>{totalCalories}</Text>
+                    <Text style={styles.totalCalories}>{mealSummary.calorieGoal}</Text>
                   </View>
                 </View>
               </View>
             </View>
             <View style={styles.nutrientsrow}>
-              <Badge text='proteínas'></Badge>
-              <Badge text='Carbohidratos'></Badge>
-              <Badge text='Grasas'></Badge>
+              <Badge 
+                text='Proteínas' 
+                value={`${mealSummary.totalProtein}g`}
+                icon={<Ionicons name="barbell-outline" size={16} color={colors.darkgreen} />}
+                style={styles.nutrientBadge}
+              />
+              <Badge 
+                text='Carbos' 
+                value={`${mealSummary.totalCarbs}g`}
+                icon={<Ionicons name="flash-outline" size={16} color={colors.darkgreen} />}
+                style={styles.nutrientBadge}
+              />
+              <Badge 
+                text='Grasas' 
+                value={`${mealSummary.totalFats}g`}
+                icon={<Ionicons name="water-outline" size={16} color={colors.darkgreen} />}
+                style={styles.nutrientBadge}
+              />
             </View>
           </CardBase>
         </View>
-        
+
+        {/* Resumen de Comidas del Día */}
+        <View style={styles.mealsSection}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Comidas de hoy</Text>
+          </View>
+
+          <CardBase variant="solid" style={styles.mealsCard}>
+            {mealsByType.map((meal, index) => (
+              <View key={meal.id}>
+                <View style={styles.mealRow}>
+                  {/* Icono y tipo de comida */}
+                  <View style={styles.mealInfo}>
+                    <Badge
+                      variant='primary' 
+                      icon={<Ionicons name={meal.icon as any} size={24} color={colors.darkgreen} />}
+                      style={styles.mealIconBadge}
+                    />
+                    <View>
+                      <Text style={styles.mealType}>{meal.tipo}</Text>
+                      <Text style={styles.mealCalories}>{meal.calorias} kcal</Text>
+                    </View>
+                  </View>
+
+                  {/* Valores nutricionales */}
+                  <View style={styles.mealNutrients}>
+                    <View style={styles.nutrientItem}>
+                      <Text style={styles.nutrientLabel}>P</Text>
+                      <Text style={styles.nutrientValue}>{meal.proteinas}g</Text>
+                    </View>
+                    <View style={styles.nutrientItem}>
+                      <Text style={styles.nutrientLabel}>C</Text>
+                      <Text style={styles.nutrientValue}>{meal.carbohidratos}g</Text>
+                    </View>
+                    <View style={styles.nutrientItem}>
+                      <Text style={styles.nutrientLabel}>G</Text>
+                      <Text style={styles.nutrientValue}>{meal.grasas}g</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Divider entre comidas (excepto el último) */}
+                {index < meals.length - 1 && (
+                  <Divider 
+                    color={colors.darkgreen + '20'} 
+                    style={styles.mealDivider}
+                  />
+                )}
+              </View>
+            ))}
+          </CardBase>
+        </View>
 
         {/* Espaciado final */}
         <View style={{ height: spacing.xl }} />
@@ -80,6 +219,24 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  loadingText: {
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.medium,
+    color: colors.darkgreen,
+    marginTop: spacing.md,
+  },
+  errorText: {
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.medium,
+    color: colors.error,
+    textAlign: 'center',
+    paddingHorizontal: spacing.lg,
   },
   header: {
     flexDirection: 'row',
@@ -101,6 +258,13 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     justifyContent: 'center',
     marginTop: 20,
+  },
+  nutrientBadge: {
+    shadowColor: colors.darkgreen,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
 
 
@@ -186,88 +350,71 @@ const styles = StyleSheet.create({
     color: colors.textdark + 'CC',
   },
 
-  // Register Section
-  registerWrapper: {
+  // Meals Section
+  mealsSection: {
     paddingHorizontal: spacing.lg,
-    marginTop: spacing.lg,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
-  registerHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    marginBottom: spacing.lg,
+  sectionHeader: {
+    marginBottom: spacing.md,
   },
-  registerTitle: {
+  sectionTitle: {
     fontSize: typography.size.subtitle,
     fontFamily: typography.fontfamily.bold,
-    color: colors.textdark,
+    color: colors.darkgreen,
   },
-  registerButtons: {
+  mealsCard: {
+    padding: spacing.lg,
+  },
+  mealRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+  },
+  mealInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    flex: 1,
+  },
+  mealIconBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: radious.pill,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+  },
+  mealType: {
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.semibold,
+    color: colors.darkgreen,
+  },
+  mealCalories: {
+    fontSize: typography.size.caption,
+    fontFamily: typography.fontfamily.regular,
+    color: colors.darkgreen + 'AA',
+    marginTop: spacing.xs / 2,
+  },
+  mealNutrients: {
     flexDirection: 'row',
     gap: spacing.md,
   },
-  registerCard: {
-    flex: 1,
-    minHeight: 160,
-    padding: spacing.md,
-  },
-  registerCardOutline: {
-    flex: 1,
-    minHeight: 160,
-    backgroundColor: 'transparent',
-    borderRadius: radious.lg,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: colors.darkgreen + '60',
-    padding: spacing.md,
-  },
-  cardContent: {
-    flex: 1,
-    justifyContent: 'center',
+  nutrientItem: {
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing.xs / 2,
   },
-  iconCircleLarge: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.xs,
-  },
-  iconCircleLargeOutline: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.greenprimary + '20',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.xs,
-  },
-  cardTitle: {
-    fontSize: typography.size.subtitle,
-    fontFamily: typography.fontfamily.bold,
-    color: colors.textdark,
-    textAlign: 'center',
-  },
-  cardSubtitle: {
+  nutrientLabel: {
     fontSize: typography.size.caption,
-    fontFamily: typography.fontfamily.regular,
-    color: colors.textdark,
-    textAlign: 'center',
+    fontFamily: typography.fontfamily.medium,
+    color: colors.darkgreen + '99',
   },
-  cardTitleOutline: {
-    fontSize: typography.size.subtitle,
+  nutrientValue: {
+    fontSize: typography.size.body,
     fontFamily: typography.fontfamily.bold,
-    color: colors.textdark,
-    textAlign: 'center',
+    color: colors.darkgreen,
   },
-  cardSubtitleOutline: {
-    fontSize: typography.size.caption,
-    fontFamily: typography.fontfamily.regular,
-    color: colors.textdark,
-    textAlign: 'center',
+  mealDivider: {
+    marginVertical: spacing.xs,
   },
 });

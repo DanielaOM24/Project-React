@@ -1,12 +1,12 @@
 export const colors = {
     // brand
     greenprimary: '#C8F75E', // verde lima
-    greensecondary: '#9FD93A', // verde esmeralda
+    greensecondary: '#70a80f', // verde esmeralda
     darkgreen: '#102c18', // verde oscuro
 
     // backgrounds
     background: '#9FD93A', // verde para cards, buttons and badges
-    appBackground: '#FAFAFA', // fondo blanco de la app
+    appBackground: '#F8FFF3', // fondo blanco con tinte verde muy suave
 
     // text
     primaryText: '#ffffff',
