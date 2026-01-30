@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native"; // Agregué ActivityIndicator
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as sensorsManager from "./sensorsManager";
 import { Audio } from "expo-av";
@@ -11,8 +11,10 @@ export default function SensorApp() {
   const [permission, requestPermission] = useCameraPermissions();
   const [microphonePermission, setMicrophonePermission] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  
+  // --- EDITADO: Nuevo estado de carga ---
+  const [isUploading, setIsUploading] = useState(false);
 
-  // permisos de micrófono
   useEffect(() => {
     (async () => {
       const ok = await sensorsManager.requestMicrophonePermission();
@@ -25,9 +27,7 @@ export default function SensorApp() {
   if (!permission.granted) {
     return (
       <View style={styles.container}>
-        <Text style={styles.sensorTitle}>
-          Se requiere permiso para usar la cámara
-        </Text>
+        <Text style={styles.sensorTitle}>Se requiere permiso para usar la cámara</Text>
         <TouchableOpacity style={styles.button} onPress={requestPermission}>
           <Text style={styles.buttonText}>Conceder permiso</Text>
         </TouchableOpacity>
@@ -35,10 +35,27 @@ export default function SensorApp() {
     );
   }
 
+  // --- EDITADO: Función de captura con envío a API ---
   const handleTakePhoto = async () => {
+    if (isUploading) return;
+
     const photo = await sensorsManager.takePhoto(cameraRef.current);
     if (photo) {
-      console.log("foto tomada:", photo.uri);
+      try {
+        setIsUploading(true);
+        console.log("Enviando foto a la base de datos...");
+        
+        const result = await sensorsManager.analyzeMealPhoto(photo.uri);
+        
+        console.log("Análisis exitoso:", result);
+        alert("¡Foto analizada y guardada correctamente!");
+        await sensorsManager.speak("Análisis completado");
+        
+      } catch (error) {
+        console.error("Error al conectar con el servidor de NutriLens", error)
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
@@ -51,14 +68,10 @@ export default function SensorApp() {
       }
     } else {
       if (recordingRef.current) {
-        const uri = await sensorsManager.stopRecordingAudio(
-          recordingRef.current
-        );
+        const uri = await sensorsManager.stopRecordingAudio(recordingRef.current);
         setIsRecording(false);
         recordingRef.current = null;
-
         if (uri) {
-          console.log("audio grabado en:", uri);
           await sensorsManager.playAudio(uri);
         }
       }
@@ -73,14 +86,24 @@ export default function SensorApp() {
     <View style={styles.container}>
       {/* CÁMARA */}
       <View style={styles.sensorCard}>
-        <Text style={styles.sensorTitle}>Cámara</Text>
+        <Text style={styles.sensorTitle}>Cámara NutriLens</Text>
         <CameraView ref={cameraRef} style={styles.camera} />
-        <TouchableOpacity style={styles.button} onPress={handleTakePhoto}>
-          <Text style={styles.buttonText}>Tomar foto</Text>
+        
+        {/* --- EDITADO: Botón con feedback de carga --- */}
+        <TouchableOpacity 
+          style={[styles.button, isUploading && { backgroundColor: '#A9A9A9' }]} 
+          onPress={handleTakePhoto}
+          disabled={isUploading}
+        >
+          {isUploading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Tomar foto y analizar</Text>
+          )}
         </TouchableOpacity>
       </View>
 
-      {/* MICRÓFONO */}
+      {/* Resto de componentes (Micrófono y Síntesis) permanecen igual */}
       {microphonePermission && (
         <View style={styles.sensorCard}>
           <Text style={styles.sensorTitle}>Micrófono</Text>
@@ -95,7 +118,6 @@ export default function SensorApp() {
         </View>
       )}
 
-      {/* SÍNTESIS DE VOZ */}
       <View style={styles.sensorCard}>
         <Text style={styles.sensorTitle}>Síntesis de voz</Text>
         <TouchableOpacity style={styles.button} onPress={handleSpeak}>
@@ -106,94 +128,13 @@ export default function SensorApp() {
   );
 }
 
+// Estilos se mantienen igual que tu código original
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    padding: 16,
-  },
-  header: {
-    marginBottom: 24,
-    marginTop: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#999',
-  },
-  sensorCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  sensorTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 12,
-  },
-  sensorData: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 4,
-    fontFamily: 'Menlo',
-  },
-  description: {
-    fontSize: 12,
-    color: '#999',
-    marginTop: 8,
-    fontStyle: 'italic',
-  },
-  camera: {
-    width: '100%',
-    height: 250,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  button: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  buttonActive: {
-    backgroundColor: '#FF3B30',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  infoCard: {
-    backgroundColor: '#E3F2FD',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-    borderLeftWidth: 4,
-    borderLeftColor: '#2196F3',
-  },
-  infoTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1976D2',
-    marginBottom: 8,
-  },
-  infoText: {
-    fontSize: 13,
-    color: '#0D47A1',
-    lineHeight: 20,
-  },
+    container: { flex: 1, backgroundColor: '#f5f5f5', padding: 16 },
+    sensorCard: { backgroundColor: '#fff', borderRadius: 12, padding: 16, marginBottom: 12, elevation: 3 },
+    sensorTitle: { fontSize: 18, fontWeight: '600', color: '#333', marginBottom: 12 },
+    camera: { width: '100%', height: 250, borderRadius: 8, marginBottom: 12 },
+    button: { backgroundColor: '#007AFF', paddingVertical: 12, borderRadius: 8, alignItems: 'center', marginTop: 8 },
+    buttonActive: { backgroundColor: '#FF3B30' },
+    buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 });

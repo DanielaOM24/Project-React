@@ -102,3 +102,34 @@ export async function speak(
     console.error("error en sintesis de voz", error);
   }
 }
+
+export async function analyzeMealPhoto(photoUri: string): Promise <any>{
+  const formData = new FormData();
+
+  const photoFile = {
+    uri: photoUri,
+    name: 'meal_capture.png',
+    type: 'image/jpeg'
+  }
+
+  formData.append('image', photoFile as any)
+    
+
+  try{
+    const response = await fetch('https://nutrilens-0x37.onrender.com/api/meals/analyze',{
+      method: 'POST',
+      body: formData,
+      headers:{
+        'Accept': 'aplication/json',
+        'Content-Type': 'multipart/form-data'
+      },
+    });
+    if (!response.ok){
+      throw new Error(`Error en servidor: ${response.status}`);
+    }
+    return await response.json();
+  }catch (error){
+    console.error("Error enviando la foto al endpoint:", error);
+    throw error;
+  }
+}
