@@ -1,24 +1,61 @@
 /**
  * Puntos de extensión para cámara y audio.
- * El compañero encargado de cámara/video debe REEMPLAZAR las implementaciones
- * de captureImage y recordAudio por las reales (expo-camera, expo-av, etc.).
- *
- * La UI del chat ya consume estas funciones: solo hay que sustituir el cuerpo
- * de cada una por la lógica real.
+ * captureImage usa expo-image-picker. recordAudio sigue como placeholder
+ * (grabación + STT debe implementarse con expo-av + servicio de voz).
  */
+
+import * as ImagePicker from 'expo-image-picker';
 
 /**
  * Captura una foto (cámara o galería) y devuelve la imagen en base64.
- * Formato aceptado: base64 puro o "data:image/jpeg;base64,..." / "data:image/png;base64,..."
- *
- * REEMPLAZAR: usar expo-image-picker o expo-camera para capturar/seleccionar,
- * luego convertir a base64 y return. Si el usuario cancela, devolver null.
+ * Formato: "data:image/jpeg;base64,..." para enviar a la IA.
+ * Si el usuario cancela o no da permiso, devuelve null.
  */
 export async function captureImage(): Promise<string | null> {
-  // TODO: Reemplazar por implementación real (ej. ImagePicker.launchCameraAsync / launchImageLibraryAsync).
-  // El resultado debe ser base64 (uri -> readAsStringAsync base64 o similar).
-  console.warn('[mediaCapture] captureImage: implementación placeholder. Reemplazar por cámara/galería real.');
-  return null;
+  const { status } = await ImagePicker.requestCameraPermissionsAsync();
+  if (status !== 'granted') {
+    return null;
+  }
+
+  const result = await ImagePicker.launchCameraAsync({
+    mediaTypes: ['images'],
+    allowsEditing: true,
+    aspect: [1, 1],
+    quality: 0.8,
+    base64: true,
+  });
+
+  if (result.canceled || !result.assets?.[0]?.base64) {
+    return null;
+  }
+
+  const base64 = result.assets[0].base64;
+  return `data:image/jpeg;base64,${base64}`;
+}
+
+/**
+ * Abre la galería para elegir una imagen (alternativa a cámara).
+ */
+export async function pickImageFromGallery(): Promise<string | null> {
+  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (status !== 'granted') {
+    return null;
+  }
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ['images'],
+    allowsEditing: true,
+    aspect: [1, 1],
+    quality: 0.8,
+    base64: true,
+  });
+
+  if (result.canceled || !result.assets?.[0]?.base64) {
+    return null;
+  }
+
+  const base64 = result.assets[0].base64;
+  return `data:image/jpeg;base64,${base64}`;
 }
 
 /**

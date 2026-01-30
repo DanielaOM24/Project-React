@@ -6,7 +6,7 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator,
+   ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -24,13 +24,21 @@ import { UserContext } from '@/ai/prompts';
 import { InnovationColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
-const testUserContext: UserContext = {
-  objetivo: 'perder peso',
-  dieta: 'sin restricciones',
-  comidasPreferidas: ['pollo', 'ensaladas', 'frutas'],
-  restricciones: ['lactosa'],
-  infoAdicional: 'Hago ejercicio 3 veces por semana',
-};
+const OBJETIVOS_PREDEFINIDOS = [
+  'perder peso',
+  'ganar masa muscular',
+  'mantener peso',
+] as const;
+
+function buildUserContextFromObjetivo(objetivo: string): UserContext {
+  return {
+    objetivo,
+    dieta: 'sin restricciones',
+    comidasPreferidas: [],
+    restricciones: [],
+    infoAdicional: '',
+  };
+}
 
 interface Message {
   id: string;
@@ -45,12 +53,24 @@ export default function AIChatScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const c = IC[isDark ? 'dark' : 'light'];
+  const [userContext, setUserContext] = useState<UserContext | null>(null);
+  const [objetivoCustom, setObjetivoCustom] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const setObjetivo = (objetivo: string) => {
+    setUserContext(buildUserContextFromObjetivo(objetivo.trim()));
+    setObjetivoCustom('');
+  };
+
+  const cambiarObjetivo = () => {
+    setUserContext(null);
+    setMessages([]);
+  };
+
   const sendMessage = async () => {
-    if (!inputText.trim() || isLoading) return;
+    if (!userContext || !inputText.trim() || isLoading) return;
     const text = inputText.trim();
     setMessages(prev => [
       ...prev,
@@ -60,7 +80,7 @@ export default function AIChatScreen() {
     setIsLoading(true);
 
     try {
-      const res = await getChatResponse(text, testUserContext);
+      const res = await getChatResponse(text, userContext);
       setMessages(prev => [
         ...prev,
         {
@@ -148,11 +168,23 @@ export default function AIChatScreen() {
           </View>
         </View>
 
-        <View style={[styles.pill, { backgroundColor: c.surfaceElevated, borderColor: c.border }]}>
-          <View style={[styles.pillDot, { backgroundColor: isAPIKeyConfigured() ? c.accent : '#eab308' }]} />
-          <Text style={[styles.pillText, { color: c.textSecondary }]}>
-            {isAPIKeyConfigured() ? 'Gemini' : 'Demo'} · {testUserContext.objetivo}
-          </Text>
+        <View style={styles.pillRow}>
+          <View style={[styles.pill, { backgroundColor: c.surfaceElevated, borderColor: c.border }]}>
+            <View style={[styles.pillDot, { backgroundColor: isAPIKeyConfigured() ? c.accent : '#eab308' }]} />
+            <Text style={[styles.pillText, { color: c.textSecondary }]}>
+              {isAPIKeyConfigured() ? 'Gemini' : 'Demo'}
+              {userContext ? ` · ${userContext.objetivo}` : ' · ¿Cuál es tu objetivo?'}
+            </Text>
+          </View>
+          {userContext && (
+            <TouchableOpacity
+              onPress={cambiarObjetivo}
+              style={[styles.cambiarObjetivoBtn, { borderColor: c.border }]}
+            >
+              <MaterialIcons name="edit" size={14} color={c.primary} />
+              <Text style={[styles.cambiarObjetivoText, { color: c.primary }]}>Cambiar objetivo</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <KeyboardAvoidingView
@@ -160,17 +192,61 @@ export default function AIChatScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           keyboardVerticalOffset={100}
         >
-          {messages.length === 0 ? (
+          {!userContext ? (
+            <View style={styles.empty}>
+              <View style={[styles.emptyIconBg, { backgroundColor: c.surfaceElevated }]} />
+              <View style={[styles.emptyIcon, { backgroundColor: c.surfaceCard, borderColor: c.border }]}>
+                <Text style={styles.emptyEmoji}>🎯</Text>
+              </View>
+              <Text style={[styles.emptyTitle, { color: c.text }]}>
+                ¿Cuál es tu objetivo?
+              </Text>
+              <Text style={[styles.emptyDesc, { color: c.textSecondary }]}>
+                Elige uno o escribe el tuyo. El chat se enfocará en este objetivo.
+              </Text>
+              <View style={styles.suggestions}>
+                {OBJETIVOS_PREDEFINIDOS.map((obj, i) => (
+                  <TouchableOpacity
+                    key={i}
+                    onPress={() => setObjetivo(obj)}
+                    style={[styles.suggestionChip, { backgroundColor: c.surfaceCard, borderColor: c.border }]}
+                  >
+                    <Text style={[styles.suggestionText, { color: c.textSecondary }]}>{obj}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <View style={[styles.objetivoCustomRow, { borderColor: c.border }]}>
+                <TextInput
+                  style={[styles.objetivoCustomInput, { color: c.text }]}
+                  placeholder="O escribe tu objetivo…"
+                  placeholderTextColor={c.muted}
+                  value={objetivoCustom}
+                  onChangeText={setObjetivoCustom}
+                  onSubmitEditing={() => objetivoCustom.trim() && setObjetivo(objetivoCustom)}
+                />
+                <TouchableOpacity
+                  onPress={() => objetivoCustom.trim() && setObjetivo(objetivoCustom)}
+                  disabled={!objetivoCustom.trim()}
+                  style={[
+                    styles.objetivoCustomBtn,
+                    { backgroundColor: objetivoCustom.trim() ? c.primary : c.border },
+                  ]}
+                >
+                  <Text style={styles.objetivoCustomBtnText}>Usar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : messages.length === 0 ? (
             <View style={styles.empty}>
               <View style={[styles.emptyIconBg, { backgroundColor: c.surfaceElevated }]} />
               <View style={[styles.emptyIcon, { backgroundColor: c.surfaceCard, borderColor: c.border }]}>
                 <Text style={styles.emptyEmoji}>🥗</Text>
               </View>
               <Text style={[styles.emptyTitle, { color: c.text }]}>
-                ¡Hola! Soy tu asistente nutricional
+                ¡Hola! Soy NutriLens
               </Text>
               <Text style={[styles.emptyDesc, { color: c.textSecondary }]}>
-                Pregúntame sobre nutrición, recetas saludables o consejos para tus objetivos. 💬
+                Pregúntame sobre nutrición, recetas saludables o consejos para tu objetivo: {userContext.objetivo}. 💬
               </Text>
               <Text style={[styles.suggestLabel, { color: c.muted }]}>Prueba preguntar</Text>
               <View style={styles.suggestions}>
@@ -202,34 +278,36 @@ export default function AIChatScreen() {
             </View>
           )}
 
-          <View style={[styles.inputWrap, { backgroundColor: c.surface, borderColor: c.border }]}>
-            <View style={[styles.inputRow, { backgroundColor: c.surfaceCard, borderColor: c.border }]}>
-              <TextInput
-                style={[styles.input, { color: c.text }]}
-                placeholder="Escribe tu mensaje…"
-                placeholderTextColor={c.muted}
-                value={inputText}
-                onChangeText={setInputText}
-                multiline
-                maxLength={500}
-                onSubmitEditing={sendMessage}
-              />
-              <TouchableOpacity
-                onPress={sendMessage}
-                disabled={!inputText.trim() || isLoading}
-                style={[
-                  styles.sendBtn,
-                  { backgroundColor: inputText.trim() && !isLoading ? c.primary : c.border },
-                ]}
-              >
-                <MaterialIcons
-                  name="send"
-                  size={20}
-                  color={inputText.trim() && !isLoading ? '#fff' : c.muted}
+          {userContext && (
+            <View style={[styles.inputWrap, { backgroundColor: c.surface, borderColor: c.border }]}>
+              <View style={[styles.inputRow, { backgroundColor: c.surfaceCard, borderColor: c.border }]}>
+                <TextInput
+                  style={[styles.input, { color: c.text }]}
+                  placeholder="Escribe tu mensaje…"
+                  placeholderTextColor={c.muted}
+                  value={inputText}
+                  onChangeText={setInputText}
+                  multiline
+                  maxLength={500}
+                  onSubmitEditing={sendMessage}
                 />
-              </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={sendMessage}
+                  disabled={!inputText.trim() || isLoading}
+                  style={[
+                    styles.sendBtn,
+                    { backgroundColor: inputText.trim() && !isLoading ? c.primary : c.border },
+                  ]}
+                >
+                  <MaterialIcons
+                    name="send"
+                    size={20}
+                    color={inputText.trim() && !isLoading ? '#fff' : c.muted}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          )}
         </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
@@ -290,19 +368,56 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
+  pillRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: -8,
+  },
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'center',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    marginTop: -8,
     gap: 8,
     borderWidth: 1,
   },
   pillDot: { width: 8, height: 8, borderRadius: 4 },
   pillText: { fontSize: 12, fontWeight: '600' },
+  cambiarObjetivoBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  cambiarObjetivoText: { fontSize: 12, fontWeight: '600' },
+  objetivoCustomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    marginTop: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  objetivoCustomInput: {
+    flex: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+  },
+  objetivoCustomBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    justifyContent: 'center',
+  },
+  objetivoCustomBtnText: { fontSize: 14, fontWeight: '600', color: '#fff' },
 
   chat: { flex: 1 },
   empty: {
