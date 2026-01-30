@@ -1,20 +1,15 @@
+import { LoadingScreen } from '@/components/loading-screen';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { Redirect } from 'expo-router';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 /**
- * Ruta raíz "/".
- * Redirige a (onboarding) o (tabs) según si el usuario completó el onboarding.
+ * Ruta raíz "/". Loader mientras carga; redirige a (onboarding) o (tabs). Sin pantalla en blanco.
  */
 export default function Index() {
   const { isReady, hasCompletedOnboarding } = useOnboarding();
 
   if (!isReady) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
+    return <LoadingScreen message="Cargando..." />;
   }
 
   if (hasCompletedOnboarding) {
@@ -23,7 +18,3 @@ export default function Index() {
 
   return <Redirect href="/(onboarding)" />;
 }
-
-const styles = StyleSheet.create({
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-});
