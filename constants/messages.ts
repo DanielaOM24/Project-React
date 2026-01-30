@@ -1,15 +1,10 @@
-/**
- * Mensajes del sistema centralizados para Nutrilens.
- * Tono: amigable, claro y coherente con una app de nutrición premium.
- * Uso: getMessage('success.onboarding'), showSuccess({ messageKey: 'success.onboarding' }) o showToastFrom.success.onboarding().
- */
 
 export const Messages = {
   // ─── SUCCESS ─────────────────────────────────────────────────────────────
   success: {
     onboarding: '¡Listo! Guardamos tu información y ya estás listo para empezar.',
-    mealRegistered: 'Tu comida quedó registrada 🍽️',
-    recipeSaved: 'Receta guardada en tu colección 📖',
+    mealRegistered: 'Tu comida quedó registrada ',
+    recipeSaved: 'Receta guardada en tu colección ',
     profileUpdated: 'Tu perfil se actualizó correctamente.',
     syncSuccess: 'Datos sincronizados. Todo está al día.',
     aiResponse: 'Listo, aquí tienes tu análisis.',
@@ -19,10 +14,15 @@ export const Messages = {
   error: {
     invalidFields: 'Falta completar este dato.',
     invalidFieldsGeneric: 'Revisa los campos marcados y complétalos.',
-    network: 'No pudimos conectar. Revisa tu internet e intenta otra vez.',
+    network: 'Parece que no tienes conexión  Revisa tu internet e intenta otra vez.',
+    networkGeneric: 'No pudimos conectar. Revisa tu internet e intenta otra vez.',
+    serverDown: 'Estamos teniendo problemas con el servidor. Intenta más tarde.',
     aiNoResponse: 'La IA no pudo responder ahora. Intenta de nuevo en un momento.',
+    aiNotUnderstood: 'No entendimos bien la comida  ¿Puedes intentar otra foto?',
     saveFailed: 'No pudimos guardar. Intenta otra vez.',
+    loadFailed: 'No pudimos cargar los datos. Intenta otra vez.',
     generic: 'Algo salió mal. Intenta de nuevo.',
+    timeout: 'La operación tardó demasiado. Intenta otra vez.',
   },
 
   // ─── INFO / SYSTEM ───────────────────────────────────────────────────────
@@ -31,6 +31,9 @@ export const Messages = {
     loading: 'Un momento…',
     aiThinking: 'Analizando tu comida…',
     offlineData: 'Estás sin conexión. Usarás los datos guardados.',
+    loadingRecipes: 'Cargando recetas… ',
+    savingMeal: 'Guardando tu comida ',
+    processing: 'Procesando…',
   },
 
   // ─── WARNING ─────────────────────────────────────────────────────────────
@@ -40,11 +43,7 @@ export const Messages = {
   },
 } as const;
 
-/**
- * Obtiene el texto de un mensaje a partir de una clave con punto.
- * Ej: getMessage('success.onboarding') → Messages.success.onboarding
- * Si la clave no existe, devuelve la clave tal cual.
- */
+
 export function getMessage(key: string): string {
   const [category, subKey] = key.split('.');
   const cat = (Messages as Record<string, Record<string, string>>)[category];
