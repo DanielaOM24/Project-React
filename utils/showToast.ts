@@ -1,5 +1,8 @@
-import Toast from 'react-native-toast-message';
-
+/**
+ * Toasts — stub si no está instalado react-native-toast-message.
+ * Cuando instales: npm install react-native-toast-message
+ * restaura el import y Toast.show() y añade <Toast /> en app/_layout.tsx
+ */
 import { getMessage } from '@/constants/messages';
 
 type ToastType = 'success' | 'error' | 'info';
@@ -21,62 +24,32 @@ function resolveText(options: ShowToastOptions): string {
   return '';
 }
 
-/**
- * Muestra un toast de éxito.
- * Uso: showSuccess({ messageKey: 'success.mealRegistered' })
- *   o: showSuccess({ text: 'Tu comida quedó registrada' })
- */
+/** Stub: no muestra nada hasta que react-native-toast-message esté instalado. */
 export function showSuccess(options: ShowToastOptions = {}) {
   const text = resolveText(options);
   if (!text) return;
-  Toast.show({
-    type: 'success',
-    text1: options.title,
-    text2: text,
-    visibilityTime: options.visibilityTime ?? 3000,
-  });
+  // Toast.show({ type: 'success', text1: options.title, text2: text, ... });
 }
 
-/**
- * Muestra un toast de error.
- */
+/** Stub: no muestra nada hasta que react-native-toast-message esté instalado. */
 export function showError(options: ShowToastOptions = {}) {
   const text = resolveText(options);
   if (!text) return;
-  Toast.show({
-    type: 'error',
-    text1: options.title,
-    text2: text,
-    visibilityTime: options.visibilityTime ?? 4000,
-  });
+  // Toast.show({ type: 'error', text1: options.title, text2: text, ... });
 }
 
-/**
- * Muestra un toast informativo.
- */
+/** Stub: no muestra nada hasta que react-native-toast-message esté instalado. */
 export function showInfo(options: ShowToastOptions = {}) {
   const text = resolveText(options);
   if (!text) return;
-  Toast.show({
-    type: 'info',
-    text1: options.title,
-    text2: text,
-    visibilityTime: options.visibilityTime ?? 3000,
-  });
+  // Toast.show({ type: 'info', text1: options.title, text2: text, ... });
 }
 
-/**
- * Muestra un toast de advertencia (usando type 'info' por defecto en la lib).
- */
+/** Stub: no muestra nada hasta que react-native-toast-message esté instalado. */
 export function showWarning(options: ShowToastOptions = {}) {
   const text = resolveText(options);
   if (!text) return;
-  Toast.show({
-    type: 'info',
-    text1: options.title,
-    text2: text,
-    visibilityTime: options.visibilityTime ?? 3500,
-  });
+  // Toast.show({ type: 'info', text1: options.title, text2: text, ... });
 }
 
 /**

@@ -1,12 +1,13 @@
 /**
  * Chat con IA Nutricional — NutriLens
  * Verde innovador, elegante y profesional. Solo texto por ahora.
+ * Historial: POST y GET a la API de NutriLens.
  */
 
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-   ActivityIndicator,
+  ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -23,6 +24,11 @@ import { isAPIKeyConfigured } from '@/ai/config';
 import { UserContext } from '@/ai/prompts';
 import { InnovationColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { getChatHistory, postChatMessage } from '@/lib/chatHistoryApi';
+
+function generateConversationId(): string {
+  return `conv_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
 
 const OBJETIVOS_PREDEFINIDOS = [
   'perder peso',
@@ -53,11 +59,13 @@ export default function AIChatScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const c = IC[isDark ? 'dark' : 'light'];
+  const [conversationId, setConversationId] = useState(generateConversationId);
   const [userContext, setUserContext] = useState<UserContext | null>(null);
   const [objetivoCustom, setObjetivoCustom] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
 
   const setObjetivo = (objetivo: string) => {
     setUserContext(buildUserContextFromObjetivo(objetivo.trim()));
@@ -67,7 +75,33 @@ export default function AIChatScreen() {
   const cambiarObjetivo = () => {
     setUserContext(null);
     setMessages([]);
+    setConversationId(generateConversationId());
+    setHistoryLoaded(false);
   };
+
+  // Cargar historial al tener objetivo y aún no haber cargado
+  useEffect(() => {
+    if (!userContext || historyLoaded || messages.length > 0) return;
+    let cancelled = false;
+    getChatHistory(conversationId)
+      .then(history => {
+        if (cancelled || !history.length) return;
+        const mapped: Message[] = history.map((m, i) => ({
+          id: `hist_${i}_${m.role}`,
+          text: m.content,
+          isUser: m.role === 'USER',
+          timestamp: new Date(),
+        }));
+        setMessages(mapped);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setHistoryLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [userContext, conversationId, historyLoaded, messages.length]);
 
   const sendMessage = async () => {
     if (!userContext || !inputText.trim() || isLoading) return;
@@ -80,23 +114,41 @@ export default function AIChatScreen() {
     setIsLoading(true);
 
     try {
+      await postChatMessage(conversationId, 'USER', text);
+    } catch (e) {
+      console.warn('No se pudo guardar mensaje en historial:', e);
+    }
+
+    try {
       const res = await getChatResponse(text, userContext);
+      const assistantText = res.message;
+      try {
+        await postChatMessage(conversationId, 'ASSISTANT', assistantText);
+      } catch (e) {
+        console.warn('No se pudo guardar respuesta en historial:', e);
+      }
       setMessages(prev => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
-          text: res.message,
+          text: assistantText,
           isUser: false,
           timestamp: new Date(),
         },
       ]);
     } catch (e) {
       console.error(e);
+      const errorText = 'No pude procesar tu mensaje. Revisa la conexión e inténtalo de nuevo.';
+      try {
+        await postChatMessage(conversationId, 'ASSISTANT', errorText);
+      } catch (err) {
+        console.warn('No se pudo guardar respuesta de error en historial:', err);
+      }
       setMessages(prev => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
-          text: 'No pude procesar tu mensaje. Revisa la conexión e inténtalo de nuevo.',
+          text: errorText,
           isUser: false,
           timestamp: new Date(),
         },
