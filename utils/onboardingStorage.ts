@@ -107,7 +107,7 @@ export const clearOnboardingData = async (): Promise<void> => {
 // Convertir respuestas del onboarding al formato del backend
 // Siempre devuelve todos los campos con valores por defecto si no están presentes
 export const convertOnboardingToBackend = (answers: Record<number, any>): {
-  goal: 'LOSE_WEIGHT' | 'MAINTAIN' | 'GAIN_MUSCLE';
+  goal: 'LOSE_WEIGHT' | 'MAINTAIN_WEIGHT' | 'GAIN_MUSCLE';
   activityLevel: 'LOW' | 'MEDIUM' | 'HIGH';
   preference: 'NORMAL' | 'VEGETARIANO';
   meals: number;
@@ -117,7 +117,7 @@ export const convertOnboardingToBackend = (answers: Record<number, any>): {
 } => {
   const result: any = {
     // Valores por defecto para todos los campos
-    goal: 'MAINTAIN',
+    goal: 'MAINTAIN_WEIGHT',
     activityLevel: 'LOW',
     preference: 'NORMAL',
     meals: 0,
@@ -133,7 +133,7 @@ export const convertOnboardingToBackend = (answers: Record<number, any>): {
         result.goal = 'LOSE_WEIGHT';
         break;
       case 'maintain':
-        result.goal = 'MAINTAIN';
+        result.goal = 'MAINTAIN_WEIGHT';
         break;
       case 'gain':
         result.goal = 'GAIN_MUSCLE';

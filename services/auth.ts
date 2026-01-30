@@ -1,6 +1,6 @@
 import { API_BASE_URL } from './config';
-import { getToken, saveToken, removeToken, setTokenInMemory } from './token';
-import type { LoginResponse, RegisterResponse, RegisterData, GoogleLoginData } from './types';
+import { getToken, removeToken, saveToken, setTokenInMemory } from './token';
+import type { GoogleLoginData, LoginResponse, RegisterData, RegisterResponse } from './types';
 
 // API de autenticación
 export const authAPI = {
@@ -112,9 +112,9 @@ export const authAPI = {
       preference: data.preference && (data.preference === 'VEGETARIANO' || data.preference === 'NORMAL') 
         ? data.preference 
         : 'NORMAL', // Por defecto NORMAL
-      goal: data.goal && (data.goal === 'LOSE_WEIGHT' || data.goal === 'MAINTAIN' || data.goal === 'GAIN_MUSCLE')
+      goal: data.goal && (data.goal === 'LOSE_WEIGHT' || data.goal === 'MAINTAIN_WEIGHT' || data.goal === 'GAIN_MUSCLE')
         ? data.goal
-        : 'MAINTAIN', // Por defecto MAINTAIN
+        : 'MAINTAIN_WEIGHT', // Por defecto MAINTAIN_WEIGHT
       activityLevel: data.activityLevel && (data.activityLevel === 'LOW' || data.activityLevel === 'MEDIUM' || data.activityLevel === 'HIGH')
         ? data.activityLevel
         : 'LOW', // Por defecto LOW

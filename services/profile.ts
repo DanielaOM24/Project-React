@@ -1,46 +1,38 @@
 import { apiRequest } from './apiRequest';
-import type { UserProfile, UpdateProfileData } from './types';
+import type { UpdateProfileData, UserProfile } from './types';
 
 // API de perfil
 export const profileAPI = {
-  // Obtener perfil
   getProfile: async (): Promise<UserProfile> => {
-    return apiRequest('/api/users/profile', {
-      method: 'GET',
-    });
+    return apiRequest('/api/users/profile', { method: 'GET' });
   },
 
-  // Actualizar perfil
   updateProfile: async (data: UpdateProfileData): Promise<UserProfile> => {
-    // Validar y preparar el cuerpo de la petición según el schema del Swagger
-    // Asegurar que todos los campos requeridos estén presentes con valores válidos
-    const requestBody: Record<string, any> = {
-      displayName: (data.displayName && data.displayName.trim()) || '',
+    if (!data.displayName?.trim()) {
+      throw new Error('El nombre no puede estar vacío');
+    }
+
+    // Convertir MAINTAIN antiguo a MAINTAIN_WEIGHT (el backend puede devolver MAINTAIN de datos antiguos)
+    let goal: string = (data.goal as any) || 'MAINTAIN_WEIGHT';
+    if (goal === 'MAINTAIN') {
+      goal = 'MAINTAIN_WEIGHT';
+    }
+
+    const body = {
+      displayName: data.displayName.trim(),
       avatarUrl: data.avatarUrl || '',
-      weight: data.weight !== undefined && data.weight !== null ? Number(data.weight) : 0,
-      height: data.height !== undefined && data.height !== null ? Number(data.height) : 0,
-      age: data.age !== undefined && data.age !== null ? Number(data.age) : 0,
-      preference: (data.preference === 'VEGETARIANO' || data.preference === 'NORMAL') ? data.preference : 'NORMAL',
-      meals: data.meals !== undefined && data.meals !== null ? Number(data.meals) : 0,
-      goal: (data.goal === 'LOSE_WEIGHT' || data.goal === 'MAINTAIN' || data.goal === 'GAIN_MUSCLE') ? data.goal : 'MAINTAIN',
-      activityLevel: (data.activityLevel === 'LOW' || data.activityLevel === 'MEDIUM' || data.activityLevel === 'HIGH') ? data.activityLevel : 'LOW',
+      weight: Math.max(0, Math.floor(Number(data.weight) || 0)),
+      height: Math.max(0, Math.floor(Number(data.height) || 0)),
+      age: Math.max(0, Math.floor(Number(data.age) || 0)),
+      meals: Math.max(0, Math.floor(Number(data.meals) || 0)),
+      preference: data.preference === 'VEGETARIANO' ? 'VEGETARIANO' : 'NORMAL',
+      goal: ['LOSE_WEIGHT', 'MAINTAIN_WEIGHT', 'GAIN_MUSCLE'].includes(goal) ? goal : 'MAINTAIN_WEIGHT',
+      activityLevel: ['LOW', 'MEDIUM', 'HIGH'].includes(data.activityLevel || '') ? data.activityLevel : 'LOW',
     };
-    
-    // Validar que los valores numéricos sean válidos (no NaN)
-    requestBody.weight = isNaN(requestBody.weight) ? 0 : requestBody.weight;
-    requestBody.height = isNaN(requestBody.height) ? 0 : requestBody.height;
-    requestBody.age = isNaN(requestBody.age) ? 0 : requestBody.age;
-    requestBody.meals = isNaN(requestBody.meals) ? 0 : requestBody.meals;
-    
-    console.log('[updateProfile] Enviando datos:', {
-      ...requestBody,
-      hasToken: true, // El token se incluirá automáticamente en apiRequest
-    });
-    
+
     return apiRequest('/api/users/profile', {
       method: 'PUT',
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify(body),
     });
   },
 };
-

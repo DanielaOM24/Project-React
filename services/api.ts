@@ -20,6 +20,7 @@ export {
 // Re-exportar APIs
 export { authAPI } from './auth';
 export { profileAPI } from './profile';
+export { recipesAPI } from './recipes';
 
 // Re-exportar configuración
 export { API_BASE_URL } from './config';

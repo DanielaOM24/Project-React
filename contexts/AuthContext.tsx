@@ -21,6 +21,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (token) {
         try {
           const profile = await profileAPI.getProfile();
+          // Convertir MAINTAIN antiguo a MAINTAIN_WEIGHT si viene del backend
+          if (profile.goal === 'MAINTAIN' as any) {
+            profile.goal = 'MAINTAIN_WEIGHT';
+          }
           setUser(profile);
         } catch (profileError: any) {
           console.error('[AuthContext] Error al obtener perfil:', profileError);

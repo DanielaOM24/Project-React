@@ -298,9 +298,9 @@ export default function HomeScreen() {
             preference: (onboardingData.preference === 'VEGETARIANO' || onboardingData.preference === 'NORMAL') 
               ? onboardingData.preference 
               : 'NORMAL',
-            goal: (onboardingData.goal === 'LOSE_WEIGHT' || onboardingData.goal === 'MAINTAIN' || onboardingData.goal === 'GAIN_MUSCLE')
+            goal: (onboardingData.goal === 'LOSE_WEIGHT' || onboardingData.goal === 'MAINTAIN_WEIGHT' || onboardingData.goal === 'GAIN_MUSCLE')
               ? onboardingData.goal
-              : 'MAINTAIN',
+              : 'MAINTAIN_WEIGHT',
             activityLevel: (onboardingData.activityLevel === 'LOW' || onboardingData.activityLevel === 'MEDIUM' || onboardingData.activityLevel === 'HIGH')
               ? onboardingData.activityLevel
               : 'LOW',

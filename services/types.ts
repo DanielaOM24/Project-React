@@ -20,7 +20,7 @@ export interface UserProfile {
   activityLevel?: 'LOW' | 'MEDIUM' | 'HIGH';
   preference?: 'NORMAL' | 'VEGETARIANO';
   meals?: number;
-  goal?: 'LOSE_WEIGHT' | 'MAINTAIN' | 'GAIN_MUSCLE';
+  goal?: 'LOSE_WEIGHT' | 'MAINTAIN_WEIGHT' | 'GAIN_MUSCLE';
   daily_calories?: number;
 }
 
@@ -33,7 +33,7 @@ export interface RegisterData {
   age?: number;
   preference?: 'NORMAL' | 'VEGETARIANO';
   meals?: number;
-  goal?: 'LOSE_WEIGHT' | 'MAINTAIN' | 'GAIN_MUSCLE';
+  goal?: 'LOSE_WEIGHT' | 'MAINTAIN_WEIGHT' | 'GAIN_MUSCLE';
   activityLevel?: 'LOW' | 'MEDIUM' | 'HIGH';
 }
 
@@ -45,7 +45,7 @@ export interface UpdateProfileData {
   age?: number;
   preference?: 'NORMAL' | 'VEGETARIANO';
   meals?: number;
-  goal?: 'LOSE_WEIGHT' | 'MAINTAIN' | 'GAIN_MUSCLE';
+  goal?: 'LOSE_WEIGHT' | 'MAINTAIN_WEIGHT' | 'GAIN_MUSCLE';
   activityLevel?: 'LOW' | 'MEDIUM' | 'HIGH';
 }
 

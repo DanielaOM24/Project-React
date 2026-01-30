@@ -27,19 +27,26 @@ export default function ProfileScreen() {
   const [editData, setEditData] = useState<UpdateProfileData>({});
 
   useEffect(() => {
-    if (user) {
+    if (user && !isEditing) {
+      // Convertir MAINTAIN antiguo a MAINTAIN_WEIGHT (el backend puede devolver MAINTAIN de datos antiguos)
+      let goal: string = (user.goal as any) || 'MAINTAIN_WEIGHT';
+      if (goal === 'MAINTAIN') {
+        goal = 'MAINTAIN_WEIGHT';
+      }
+      
       setEditData({
-        displayName: user.displayName,
-        age: user.age,
-        weight: user.weight,
-        height: user.height,
+        displayName: user.displayName || '',
+        age: user.age || 0,
+        weight: user.weight || 0,
+        height: user.height || 0,
         activityLevel: user.activityLevel || 'LOW',
         preference: user.preference || 'NORMAL',
-        meals: user.meals,
-        goal: user.goal || 'MAINTAIN',
+        meals: user.meals || 0,
+        goal: goal as 'LOSE_WEIGHT' | 'MAINTAIN_WEIGHT' | 'GAIN_MUSCLE',
+        avatarUrl: user.avatarUrl || '',
       });
     }
-  }, [user]);
+  }, [user, isEditing]);
 
   const handleSave = async () => {
     if (!user) {
@@ -47,60 +54,27 @@ export default function ProfileScreen() {
       return;
     }
 
+    if (!editData.displayName?.trim()) {
+      Alert.alert('Error', 'El nombre no puede estar vacío');
+      return;
+    }
+
     setIsSaving(true);
     try {
-      // Preparar datos para actualizar, usando valores editados o actuales del usuario
-      const updateData: UpdateProfileData = {
-        displayName: (editData.displayName?.trim() || user.displayName || '').trim(),
-        avatarUrl: editData.avatarUrl !== undefined ? editData.avatarUrl : (user.avatarUrl || ''),
-        weight: editData.weight !== undefined ? Number(editData.weight) : (user.weight !== undefined ? Number(user.weight) : 0),
-        height: editData.height !== undefined ? Number(editData.height) : (user.height !== undefined ? Number(user.height) : 0),
-        age: editData.age !== undefined ? Number(editData.age) : (user.age !== undefined ? Number(user.age) : 0),
-        preference: editData.preference || user.preference || 'NORMAL',
-        meals: editData.meals !== undefined ? Number(editData.meals) : (user.meals !== undefined ? Number(user.meals) : 0),
-        goal: editData.goal || user.goal || 'MAINTAIN',
-        activityLevel: editData.activityLevel || user.activityLevel || 'LOW',
-      };
-      
-      // Validar que displayName no esté vacío
-      if (!updateData.displayName || updateData.displayName.trim() === '') {
-        Alert.alert('Error', 'El nombre no puede estar vacío');
-        return;
-      }
-      
-      // Validar valores numéricos
-      if (isNaN(Number(updateData.weight)) || Number(updateData.weight) < 0) {
-        updateData.weight = user.weight || 0;
-      }
-      if (isNaN(Number(updateData.height)) || Number(updateData.height) < 0) {
-        updateData.height = user.height || 0;
-      }
-      if (isNaN(Number(updateData.age)) || Number(updateData.age) < 0) {
-        updateData.age = user.age || 0;
-      }
-      if (isNaN(Number(updateData.meals)) || Number(updateData.meals) < 0) {
-        updateData.meals = user.meals || 0;
-      }
-      
-      await profileAPI.updateProfile(updateData);
+      await profileAPI.updateProfile(editData);
       await refreshProfile();
       setIsEditing(false);
       Alert.alert('Éxito', 'Perfil actualizado correctamente');
     } catch (error: any) {
       const errorMessage = error?.message || 'Error al actualizar el perfil';
       
-      // Solo redirigir al login si el error específicamente indica sesión expirada
       if (errorMessage.includes('expirado') || errorMessage.includes('expired') || 
-          errorMessage.includes('No estás autenticado') ||
-          errorMessage.includes('Tu sesión ha expirado')) {
+          errorMessage.includes('No estás autenticado') || errorMessage.includes('Tu sesión ha expirado')) {
         Alert.alert('Error', errorMessage, [
-          {
-            text: 'OK',
-            onPress: async () => {
-              await authAPI.logout();
-              router.push('/login');
-            },
-          },
+          { text: 'OK', onPress: async () => {
+            await authAPI.logout();
+            router.push('/login');
+          }},
         ]);
       } else {
         Alert.alert('Error', errorMessage);
@@ -140,7 +114,7 @@ export default function ProfileScreen() {
   const getGoalLabel = (goal?: string) => {
     switch (goal) {
       case 'LOSE_WEIGHT': return 'Bajar de peso';
-      case 'MAINTAIN': return 'Mantener mi peso';
+      case 'MAINTAIN_WEIGHT': return 'Mantener mi peso';
       case 'GAIN_MUSCLE': return 'Ganar masa muscular';
       default: return 'No especificado';
     }
@@ -219,7 +193,7 @@ export default function ProfileScreen() {
                 <View style={styles.goalOptionsContainer}>
                   {[
                     { value: 'LOSE_WEIGHT', label: 'Bajar de peso', icon: 'fitness-outline' },
-                    { value: 'MAINTAIN', label: 'Mantener', icon: 'scale-outline' },
+                    { value: 'MAINTAIN_WEIGHT', label: 'Mantener', icon: 'scale-outline' },
                     { value: 'GAIN_MUSCLE', label: 'Aumentar', icon: 'barbell-outline' },
                   ].map((option) => (
                     <TouchableOpacity

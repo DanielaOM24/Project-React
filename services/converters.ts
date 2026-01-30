@@ -1,10 +1,10 @@
 // Funciones helper para convertir valores del onboarding al formato del backend
-export const convertGoalToBackend = (goal: string): 'LOSE_WEIGHT' | 'MAINTAIN' | 'GAIN_MUSCLE' => {
+export const convertGoalToBackend = (goal: string): 'LOSE_WEIGHT' | 'MAINTAIN_WEIGHT' | 'GAIN_MUSCLE' => {
   switch (goal) {
     case 'lose': return 'LOSE_WEIGHT';
-    case 'maintain': return 'MAINTAIN';
+    case 'maintain': return 'MAINTAIN_WEIGHT';
     case 'gain': return 'GAIN_MUSCLE';
-    default: return 'MAINTAIN';
+    default: return 'MAINTAIN_WEIGHT';
   }
 };
 

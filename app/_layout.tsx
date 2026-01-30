@@ -22,6 +22,7 @@ export default function RootLayout() {
           <Stack.Screen name="success" options={{ headerShown: false }} />
           <Stack.Screen name="login" options={{ headerShown: false }} />
           <Stack.Screen name="register" options={{ headerShown: false }} />
+          <Stack.Screen name="recipe/[id]" options={{ headerShown: false }} />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>
