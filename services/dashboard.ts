@@ -1,45 +1,10 @@
+import { MealHistory, MealSummary } from "@/types/meals.type";
+import { UserProfile } from "@/types/user.type";
+
 import axios from "axios";
 
-const API_BASE_URL = "https://nutrilens-0x37.onrender.com";
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
-// Interfaces para los tipos de datos
-export interface MealSummary {
-    totalCalories: number;
-    totalProtein: number;
-    totalCarbs: number;
-    totalFats: number;
-    calorieGoal: number;
-    calorieProgressPercentage: number;
-}
-
-export interface NutritionProfile {
-    calories: number;
-    protein: number;
-    carbs: number;
-    fats: number;
-}
-
-export interface MealHistory {
-    id: string;
-    mediaUrl: string;
-    mediaType: string;
-    mealType: string;
-    nutritionProfile: NutritionProfile;
-}
-
-export interface UserProfile {
-    id: number;
-    displayName: string;
-    email: string;
-    avatarUrl: string;
-    weight: number;
-    height: number;
-    age: number;
-    preference: string;
-    meals: number;
-    goal: string;
-    activityLevel: string;
-}
 
 // Servicios de API
 export const getMealSummary = async (): Promise<MealSummary> => {
