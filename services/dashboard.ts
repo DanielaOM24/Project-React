@@ -103,7 +103,22 @@ export const getMealHistory = async (): Promise<MealHistory[]> => {
             throw new Error('Error al obtener el historial de comidas');
         }
 
-        return await response.json();
+        const allMeals = await response.json();
+        
+        // Filtrar solo las comidas de hoy
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Inicio del día de hoy
+        
+        const todaysMeals = allMeals.filter((meal: MealHistory) => {
+            if (!meal.analyzedAt) return false;
+            
+            const mealDate = new Date(meal.analyzedAt);
+            mealDate.setHours(0, 0, 0, 0); // Inicio del día de la comida
+            
+            return mealDate.getTime() === today.getTime();
+        });
+        
+        return todaysMeals;
     } catch (error) {
         console.error('[Dashboard] Error al obtener historial:', error);
         throw error;

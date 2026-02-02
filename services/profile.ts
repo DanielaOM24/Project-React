@@ -25,10 +25,10 @@ export const profileAPI = {
     const body = {
       displayName: data.displayName.trim(),
       avatarUrl: data.avatarUrl || '',
-      weight: Math.max(0, Math.floor(Number(data.weight) || 0)),
-      height: Math.max(0, Math.floor(Number(data.height) || 0)),
-      age: Math.max(0, Math.floor(Number(data.age) || 0)),
-      meals: Math.max(0, Math.floor(Number(data.meals) || 0)),
+      weight: Math.max(0, Number(data.weight) || 0), // Permite decimales para el peso
+      height: Math.max(0, Math.floor(Number(data.height) || 0)), // Altura sigue siendo entero
+      age: Math.max(0, Math.floor(Number(data.age) || 0)), // Edad sigue siendo entero
+      meals: Math.max(0, Math.floor(Number(data.meals) || 0)), // Comidas sigue siendo entero
       preference: data.preference === 'VEGETARIANO' ? 'VEGETARIANO' : 'NORMAL',
       goal: ['LOSE_WEIGHT', 'MAINTAIN_WEIGHT', 'GAIN_MUSCLE'].includes(goal) ? goal : 'MAINTAIN_WEIGHT',
       activityLevel: ['LOW', 'MEDIUM', 'HIGH'].includes(data.activityLevel || '') ? data.activityLevel : 'LOW',

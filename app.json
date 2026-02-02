@@ -1,20 +1,11 @@
 {
   "expo": {
-<<<<<<< HEAD
     "name": "Nutrilens",
     "slug": "Nutrilens",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "nutrilens",
-=======
-    "name": "Onboarding-Nutrilens",
-    "slug": "Onboarding-Nutrilens",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "onboardingnutrilens",
->>>>>>> feature/onboarding
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -47,13 +38,6 @@
             "backgroundColor": "#000000"
           }
         }
-<<<<<<< HEAD
-      ]
-    ],
-    "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
-=======
       ],
       [
         "expo-camera",
@@ -75,14 +59,14 @@
       ]
     ],
     "experiments": {
-      "typedRoutes": true
+      "typedRoutes": true,
+      "reactCompiler": true
     },
     "packagerOpts": {
       "config": "metro.config.js"
     },
     "extra": {
       "enableFastRefresh": true
->>>>>>> feature/onboarding
     }
   }
 }

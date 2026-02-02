@@ -525,6 +525,68 @@ export default function ProfileScreen() {
             </View>
           </View>
 
+          {/* Preferencia Alimentaria */}
+          <Text style={[styles.sectionTitle, { marginTop: spacing.xl }]}>Preferencia alimentaria</Text>
+          
+          <View style={styles.preferenceCard}>
+            {isEditing ? (
+              <View style={styles.preferenceSelectorContainer}>
+                {[
+                  { value: 'NORMAL', label: 'Normal', icon: 'restaurant-outline', description: 'Sin restricciones' },
+                  { value: 'VEGETARIANO', label: 'Vegetariano', icon: 'leaf-outline', description: 'Sin carne' },
+                ].map((option) => (
+                  <TouchableOpacity
+                    key={option.value}
+                    style={[
+                      styles.preferenceOptionCard,
+                      editData.preference === option.value && styles.preferenceOptionCardSelected,
+                    ]}
+                    onPress={() => setEditData({ ...editData, preference: option.value as any })}
+                    activeOpacity={0.7}>
+                    <View style={[
+                      styles.preferenceIconWrapper,
+                      editData.preference === option.value && styles.preferenceIconWrapperSelected
+                    ]}>
+                      <Ionicons
+                        name={option.icon as any}
+                        size={28}
+                        color={editData.preference === option.value ? '#FFFFFF' : colors.darkgreen}
+                      />
+                    </View>
+                    <Text style={[
+                      styles.preferenceOptionLabel,
+                      editData.preference === option.value && styles.preferenceOptionLabelSelected,
+                    ]}>
+                      {option.label}
+                    </Text>
+                    <Text style={[
+                      styles.preferenceOptionDescription,
+                      editData.preference === option.value && styles.preferenceOptionDescriptionSelected,
+                    ]}>
+                      {option.description}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ) : (
+              <View style={styles.preferenceDisplayCard}>
+                <View style={styles.preferenceDisplayIcon}>
+                  <Ionicons
+                    name={user?.preference === 'VEGETARIANO' ? 'leaf-outline' : 'restaurant-outline'}
+                    size={28}
+                    color={colors.darkgreen}
+                  />
+                </View>
+                <View style={styles.preferenceDisplayText}>
+                  <Text style={styles.preferenceDisplayLabel}>Tipo de alimentación</Text>
+                  <Text style={styles.preferenceDisplayValue}>
+                    {user?.preference === 'VEGETARIANO' ? 'Vegetariano' : 'Normal'}
+                  </Text>
+                </View>
+              </View>
+            )}
+          </View>
+
           {/* Nivel de Actividad */}
           <Text style={[styles.sectionTitle, { marginTop: spacing.xl }]}>Nivel de actividad</Text>
           
@@ -1184,5 +1246,123 @@ const styles = StyleSheet.create({
   goalOptionTextSelected: {
     color: '#000000',
     fontFamily: typography.fontfamily.bold,
+  },
+  // Preference Styles
+  preferenceCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.darkgreen,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+      web: {
+        boxShadow: '0px 2px 8px rgba(16, 44, 24, 0.1)',
+      } as any,
+    }),
+  },
+  preferenceSelectorContainer: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    justifyContent: 'space-between',
+  },
+  preferenceOptionCard: {
+    flex: 1,
+    alignItems: 'center',
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    backgroundColor: colors.greenOverlay,
+    borderWidth: 0,
+    gap: spacing.md,
+    minHeight: 160,
+    justifyContent: 'center',
+  },
+  preferenceOptionCardSelected: {
+    backgroundColor: colors.greenprimary,
+    borderWidth: 0,
+    transform: [{ scale: 1.02 }],
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.darkgreen,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: '0px 2px 4px rgba(16, 44, 24, 0.15)',
+      } as any,
+    }),
+  },
+  preferenceIconWrapper: {
+    width: 64,
+    height: 64,
+    borderRadius: radius.pill,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  preferenceIconWrapperSelected: {
+    backgroundColor: colors.darkgreen,
+  },
+  preferenceOptionLabel: {
+    fontSize: typography.size.body + 1,
+    fontFamily: typography.fontfamily.bold,
+    color: colors.darkgreen,
+    textAlign: 'center',
+    marginBottom: spacing.xs,
+  },
+  preferenceOptionLabelSelected: {
+    color: colors.darkgreen,
+    fontFamily: typography.fontfamily.bold,
+  },
+  preferenceOptionDescription: {
+    fontSize: typography.size.caption,
+    fontFamily: typography.fontfamily.regular,
+    color: colors.darkgreen,
+    textAlign: 'center',
+    opacity: 0.8,
+  },
+  preferenceOptionDescriptionSelected: {
+    color: colors.darkgreen,
+    fontFamily: typography.fontfamily.regular,
+  },
+  preferenceDisplayCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.lg,
+    padding: spacing.md,
+  },
+  preferenceDisplayIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: radius.pill,
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  preferenceDisplayText: {
+    flex: 1,
+  },
+  preferenceDisplayLabel: {
+    fontSize: typography.size.caption,
+    fontFamily: typography.fontfamily.medium,
+    color: colors.textdark,
+    opacity: 0.7,
+    marginBottom: spacing.xs / 2,
+  },
+  preferenceDisplayValue: {
+    fontSize: typography.size.subtitle,
+    fontFamily: typography.fontfamily.bold,
+    color: colors.textdark,
   },
 });

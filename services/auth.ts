@@ -104,10 +104,11 @@ export const authAPI = {
       email: data.email.trim().toLowerCase(),
       password: data.password,
       // Campos numéricos - usar 0 como valor por defecto si no están definidos
-      weight: data.weight !== undefined && data.weight !== null ? Number(data.weight) : 0,
-      height: data.height !== undefined && data.height !== null ? Number(data.height) : 0,
-      age: data.age !== undefined && data.age !== null ? Number(data.age) : 0,
-      meals: data.meals !== undefined && data.meals !== null ? Number(data.meals) : 0,
+      // weight permite decimales (ej: 70.5 kg)
+      weight: data.weight !== undefined && data.weight !== null ? Math.max(0, Number(data.weight)) : 0,
+      height: data.height !== undefined && data.height !== null ? Math.max(0, Math.floor(Number(data.height))) : 0,
+      age: data.age !== undefined && data.age !== null ? Math.max(0, Math.floor(Number(data.age))) : 0,
+      meals: data.meals !== undefined && data.meals !== null ? Math.max(0, Math.floor(Number(data.meals))) : 0,
       // Campos de texto - usar valores por defecto si no están definidos
       preference: data.preference && (data.preference === 'VEGETARIANO' || data.preference === 'NORMAL') 
         ? data.preference 

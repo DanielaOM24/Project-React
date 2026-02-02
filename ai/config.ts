@@ -2,7 +2,7 @@
  * Configuración de Gemini (Google AI)
  */
 export const AI_CONFIG = {
-  GEMINI_API_KEY: 'AIzaSyBOe-XyPHEAPPwBkldTPmRTD1ldqzBNCOQ',
+  GEMINI_API_KEY: process.env.EXPO_PUBLIC_GEMINI_API_KEY || '',
   MODEL: 'gemini-2.0-flash',
 
   /**

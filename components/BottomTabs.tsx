@@ -181,6 +181,9 @@ const styles = StyleSheet.create({
       android: {
         elevation: 2,
       },
+      web: {
+        boxShadow: '0px 2px 8px rgba(16, 44, 24, 0.05)',
+      } as any,
     }),
   },
   // Botón Siguiente
