@@ -44,6 +44,18 @@
         {
           "cameraPermission": "Permite a NutriLens acceder a tu cámara para tomar fotos de tus comidas."
         }
+      ],
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Permite a NutriLens acceder a tu micrófono para grabar audios de tus comidas."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Permite a NutriLens acceder a tus fotos para seleccionar una foto de perfil."
+        }
       ]
     ],
     "experiments": {

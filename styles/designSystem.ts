@@ -1,12 +1,12 @@
 export const colors = {
   // brand
   greenprimary: '#C8F75E', // verde lima
-  greensecondary: '#9FD93A', // verde esmeralda
-  darkgreen: '#0E2A25', // verde oscuro
+  greensecondary: '#70a80f', // verde esmeralda
+  darkgreen: '#102c18', // verde oscuro
 
-  // background para cards, buttons and badges 
-  // (para fondo de app usar los gradients)
-  background: '#0E2A25', // verde oscuro 
+  // backgrounds
+  background: '#9FD93A', // verde para cards, buttons and badges
+  appBackground: '#F8FFF3', // fondo blanco con tinte verde muy suave
 
   // text
   primaryText: '#ffffff',
@@ -25,10 +25,10 @@ export const colors = {
 
 export const typography = {
   fontfamily: {
-    regular: 'Inter-Regular',
-    medium: 'Inter-Medium',
-    bold: 'Inter-Bold',
-    semibold: 'Inter-SemiBold',
+    regular: 'Poppins-Regular',
+    medium: 'Poppins-Medium',
+    semibold: 'Poppins-SemiBold',
+    bold: 'Poppins-Bold',
   },
 
   size: {
@@ -53,4 +53,7 @@ export const radius = {
   lg: 24, 
   pill: 999,
 };
+
+// Alias para mantener compatibilidad
+export const radious = radius;
 

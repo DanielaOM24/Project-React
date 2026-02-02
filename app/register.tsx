@@ -1,5 +1,7 @@
+// Register Screen Component
+
 import { useAuth } from '@/contexts/AuthContext';
-import { authAPI } from '@/services/api';
+import { colors, radius, spacing, typography } from '@/styles/designSystem';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -18,6 +20,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function RegisterScreen() {
+  // Component State
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,6 +32,7 @@ export default function RegisterScreen() {
   const insets = useSafeAreaInsets();
   const { refreshProfile } = useAuth();
 
+  // Event Handlers
   const handleRegister = async () => {
     if (!name || !email || !password || !confirmPassword) {
       Alert.alert('Error', 'Por favor completa todos los campos');
@@ -71,11 +75,6 @@ export default function RegisterScreen() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    // TODO: Implementar Google Sign-In
-    Alert.alert('Próximamente', 'Login con Google estará disponible pronto');
-  };
-
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -83,7 +82,7 @@ export default function RegisterScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 20 },
+          { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl },
         ]}
         showsVerticalScrollIndicator={false}>
         {/* Header con back arrow */}
@@ -92,22 +91,32 @@ export default function RegisterScreen() {
             onPress={() => router.push('/')}
             style={styles.backButton}
             activeOpacity={0.7}>
-            <Ionicons name="arrow-back" size={24} color="#000000" />
+            <Ionicons name="arrow-back" size={24} color={colors.darkgreen} />
           </TouchableOpacity>
         </View>
 
+        {/* Logo/Icon Section */}
+        <View style={styles.logoSection}>
+          
+            <Ionicons name="leaf" size={48} color={colors.greenprimary} />
+          
+        </View>
+
         {/* Título */}
-        <Text style={styles.title}>Let's get started</Text>
+        <View style={styles.titleSection}>
+          <Text style={styles.title}>¡Crea tu cuenta!</Text>
+          <Text style={styles.subtitle}>Comienza tu viaje hacia una vida más saludable</Text>
+        </View>
 
         {/* Input Fields */}
         <View style={styles.inputContainer}>
           {/* Name Input */}
           <View style={styles.inputWrapper}>
-            <Ionicons name="person-outline" size={20} color="#9CA3AF" style={styles.inputIcon} />
+            <Ionicons name="person-outline" size={20} color={colors.darkgreen} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
               placeholder="Nombre completo"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textdark + '60'}
               value={name}
               onChangeText={setName}
               autoCapitalize="words"
@@ -117,11 +126,11 @@ export default function RegisterScreen() {
 
           {/* Email Input */}
           <View style={styles.inputWrapper}>
-            <Ionicons name="mail-outline" size={20} color="#9CA3AF" style={styles.inputIcon} />
+            <Ionicons name="mail-outline" size={20} color={colors.darkgreen} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="Email Id"
-              placeholderTextColor="#9CA3AF"
+              placeholder="Correo electrónico"
+              placeholderTextColor={colors.textdark + '60'}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -132,11 +141,11 @@ export default function RegisterScreen() {
 
           {/* Password Input */}
           <View style={styles.inputWrapper}>
-            <Ionicons name="lock-closed-outline" size={20} color="#9CA3AF" style={styles.inputIcon} />
+            <Ionicons name="lock-closed-outline" size={20} color={colors.darkgreen} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="Password"
-              placeholderTextColor="#9CA3AF"
+              placeholder="Contraseña"
+              placeholderTextColor={colors.textdark + '60'}
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
@@ -150,18 +159,18 @@ export default function RegisterScreen() {
               <Ionicons
                 name={showPassword ? 'eye-outline' : 'eye-off-outline'}
                 size={20}
-                color="#9CA3AF"
+                color={colors.textdark + '60'}
               />
             </TouchableOpacity>
           </View>
 
           {/* Confirm Password Input */}
           <View style={styles.inputWrapper}>
-            <Ionicons name="lock-closed-outline" size={20} color="#9CA3AF" style={styles.inputIcon} />
+            <Ionicons name="lock-closed-outline" size={20} color={colors.darkgreen} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="Confirm Password"
-              placeholderTextColor="#9CA3AF"
+              placeholder="Confirmar contraseña"
+              placeholderTextColor={colors.textdark + '60'}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry={!showConfirmPassword}
@@ -175,7 +184,7 @@ export default function RegisterScreen() {
               <Ionicons
                 name={showConfirmPassword ? 'eye-outline' : 'eye-off-outline'}
                 size={20}
-                color="#9CA3AF"
+                color={colors.textdark + '60'}
               />
             </TouchableOpacity>
           </View>
@@ -188,33 +197,17 @@ export default function RegisterScreen() {
           disabled={isLoading}
           activeOpacity={0.8}>
           {isLoading ? (
-            <ActivityIndicator color="#FFFFFF" />
+            <ActivityIndicator color={colors.darkgreen} />
           ) : (
-            <Text style={styles.primaryButtonText}>Sign up</Text>
+            <Text style={styles.primaryButtonText}>Crear cuenta</Text>
           )}
-        </TouchableOpacity>
-
-        {/* Separator */}
-        <View style={styles.separator}>
-          <View style={styles.separatorLine} />
-          <Text style={styles.separatorText}>or continue with</Text>
-          <View style={styles.separatorLine} />
-        </View>
-
-        {/* Google Button */}
-        <TouchableOpacity 
-          style={styles.googleButton} 
-          onPress={handleGoogleLogin}
-          activeOpacity={0.8}>
-          <Ionicons name="logo-google" size={20} color="#000000" />
-          <Text style={styles.googleButtonText}>Google</Text>
         </TouchableOpacity>
 
         {/* Login Link */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account? </Text>
+          <Text style={styles.footerText}>¿Ya tienes una cuenta? </Text>
           <TouchableOpacity onPress={() => router.push('/login')} activeOpacity={0.7}>
-            <Text style={styles.footerLink}>Login</Text>
+            <Text style={styles.footerLink}>Inicia sesión</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -229,111 +222,120 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.xl,
   },
   header: {
-    marginBottom: 40,
+    marginBottom: spacing.xl,
   },
   backButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'flex-start',
-    borderRadius: 20,
+    borderRadius: radius.md,
+  },
+  logoSection: {
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+  },
+  titleSection: {
+    marginBottom: spacing.xl + spacing.md,
   },
   title: {
     fontSize: 32,
-    fontWeight: '700',
-    color: '#000000',
-    marginBottom: 40,
+    fontFamily: typography.fontfamily.bold,
+    color: colors.darkgreen,
+    marginBottom: spacing.sm,
+    letterSpacing: -0.5,
+  },
+  subtitle: {
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.regular,
+    color: colors.textdark,
+    opacity: 0.7,
+    lineHeight: 20,
   },
   inputContainer: {
-    gap: 20,
-    marginBottom: 32,
+    gap: spacing.md,
+    marginBottom: spacing.md,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 24,
-    paddingHorizontal: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing.md,
     height: 56,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderWidth: 1.5,
+    borderColor: colors.whiteOverlay,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.darkgreen,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   inputIcon: {
-    marginRight: 12,
+    marginRight: spacing.sm,
   },
   input: {
     flex: 1,
-    fontSize: 16,
-    color: '#000000',
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.regular,
+    color: colors.textdark,
     padding: 0,
   },
   eyeIcon: {
-    padding: 4,
+    padding: spacing.xs,
   },
   primaryButton: {
-    backgroundColor: '#A4D65E',
-    borderRadius: 24,
+    backgroundColor: colors.greenprimary,
+    borderRadius: radius.lg,
     height: 56,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: spacing.xl,
+    marginTop: spacing.md,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.darkgreen,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
   },
   primaryButtonDisabled: {
     opacity: 0.6,
   },
   primaryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  separator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  separatorLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#E5E7EB',
-  },
-  separatorText: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginHorizontal: 16,
-  },
-  googleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 24,
-    height: 56,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    gap: 12,
-    marginBottom: 32,
-  },
-  googleButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000000',
+    fontSize: typography.size.body + 2,
+    fontFamily: typography.fontfamily.semibold,
+    color: colors.darkgreen,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: spacing.md,
   },
   footerText: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.regular,
+    color: colors.textdark,
+    opacity: 0.7,
   },
   footerLink: {
-    fontSize: 14,
-    color: '#A4D65E',
-    fontWeight: '600',
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.semibold,
+    color: colors.greenprimary,
   },
 });
-

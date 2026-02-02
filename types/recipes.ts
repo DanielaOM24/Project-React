@@ -1,13 +1,12 @@
-// Tipo para un ingrediente
+// Recipe Types
+
 export interface Ingredient {
   name: string;
   quantity: string;
 }
 
-// Tipos de comida según backend
 export type TypeFood = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK';
 
-// Tipo principal de receta (coincide con el backend)
 export interface Recipe {
   id: string;
   name: string;

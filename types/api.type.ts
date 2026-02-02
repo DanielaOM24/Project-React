@@ -1,4 +1,5 @@
-// Tipos para las respuestas de la API
+// API Response Types
+
 export interface LoginResponse {
   accessToken: string;
   refreshToken: string;
@@ -9,19 +10,11 @@ export interface RegisterResponse {
   refreshToken: string;
 }
 
-export interface UserProfile {
-  id?: string;
-  email?: string;
-  displayName?: string;
+export interface GoogleLoginData {
+  googleSub: string;
+  email: string;
+  name: string;
   avatarUrl?: string;
-  age?: number;
-  weight?: number;
-  height?: number;
-  activityLevel?: 'LOW' | 'MEDIUM' | 'HIGH';
-  preference?: 'NORMAL' | 'VEGETARIANO';
-  meals?: number;
-  goal?: 'LOSE_WEIGHT' | 'MAINTAIN_WEIGHT' | 'GAIN_MUSCLE';
-  daily_calories?: number;
 }
 
 export interface RegisterData {
@@ -49,10 +42,22 @@ export interface UpdateProfileData {
   activityLevel?: 'LOW' | 'MEDIUM' | 'HIGH';
 }
 
-export interface GoogleLoginData {
-  googleSub: string;
-  email: string;
-  name: string;
-  avatarUrl?: string;
+export type MediaType = 'IMAGE' | 'AUDIO';
+export type MealType = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK';
+
+export interface NutritionProfileDto {
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fats?: number;
+}
+
+export interface MealAnalysisResponseDto {
+  id: string;
+  mediaUrl: string;
+  mediaType: MediaType;
+  mealType?: MealType;
+  nutritionProfile?: NutritionProfileDto;
+  analyzedAt?: string;
 }
 

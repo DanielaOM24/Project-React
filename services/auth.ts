@@ -1,10 +1,10 @@
+// Authentication API Service
+
+import type { GoogleLoginData, LoginResponse, RegisterData, RegisterResponse } from '@/types';
 import { API_BASE_URL } from './config';
 import { getToken, removeToken, saveToken, setTokenInMemory } from './token';
-import type { GoogleLoginData, LoginResponse, RegisterData, RegisterResponse } from './types';
 
-// API de autenticación
 export const authAPI = {
-  // Login
   login: async (email: string, password: string): Promise<LoginResponse> => {
     if (!email || !password) {
       throw new Error('Email y contraseña son requeridos');

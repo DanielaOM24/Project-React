@@ -1,6 +1,9 @@
+// Recipes Screen Component
+
 import MainBottomTabs from '@/components/MainBottomTabs';
 import RecipeList from '@/components/recipes/RecipeList';
 import { useRecipes } from '@/hooks/useRecipes';
+import { colors, radius, spacing, typography } from '@/styles/designSystem';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -15,6 +18,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+// Constants
 const FILTERS = [
   { id: 'ALL' as const, label: 'Todos', icon: 'grid-outline' },
   { id: 'BREAKFAST' as const, label: 'Desayuno', icon: 'sunny-outline' },
@@ -24,6 +28,7 @@ const FILTERS = [
 ];
 
 export default function RecipesScreen() {
+  // Component State
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const {
@@ -37,28 +42,24 @@ export default function RecipesScreen() {
     refetch,
   } = useRecipes();
 
-  // Componente de carga inicial
+  // Render States
   if (loading && recipes.length === 0) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#A4D65E" />
+          <ActivityIndicator size="large" color={colors.greenprimary} />
           <Text style={styles.loadingText}>Cargando recetas...</Text>
-          <Text style={styles.loadingSubtext}>
-            (Puede tardar hasta 30s si el servidor está despertando)
-          </Text>
         </View>
         <MainBottomTabs activeTab="recipes" />
       </View>
     );
   }
 
-  // Componente de error
   if (error && recipes.length === 0) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.centerContainer}>
-          <Ionicons name="alert-circle-outline" size={64} color="#FF6B6B" />
+          <Ionicons name="alert-circle-outline" size={64} color={colors.error} />
           <Text style={styles.errorText}>{error}</Text>
           <Pressable style={styles.retryButton} onPress={refetch}>
             <Text style={styles.retryButtonText}>Reintentar</Text>
@@ -78,17 +79,17 @@ export default function RecipesScreen() {
 
       {/* Barra de búsqueda */}
       <View style={styles.searchContainer}>
-        <Ionicons name="search-outline" size={20} color="#6B7280" style={styles.searchIcon} />
+        <Ionicons name="search-outline" size={20} color={colors.textdark} style={[styles.searchIcon, { opacity: 0.7 }]} />
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { opacity: 0.5 }]}
           placeholder="Buscar recetas..."
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.textdark + '80'}
           value={searchText}
           onChangeText={setSearchText}
         />
         {searchText.length > 0 && (
           <Pressable onPress={() => setSearchText('')} style={styles.clearButton}>
-            <Ionicons name="close-circle" size={20} color="#9CA3AF" />
+            <Ionicons name="close-circle" size={20} color={colors.textdark} style={{ opacity: 0.5 }} />
           </Pressable>
         )}
       </View>
@@ -109,7 +110,8 @@ export default function RecipesScreen() {
               <Ionicons
                 name={filter.icon as any}
                 size={18}
-                color={isActive ? '#FFFFFF' : '#4B5563'}
+                color={isActive ? colors.darkgreen : colors.textdark}
+                style={{ opacity: isActive ? 1 : 0.7 }}
               />
               <Text style={[styles.filterText, isActive && styles.filterTextActive]}>
                 {filter.label}
@@ -150,114 +152,119 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: spacing.lg,
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#6B7280',
-    fontWeight: '500',
+    marginTop: spacing.md,
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.medium,
+    color: colors.textdark,
+    opacity: 0.7,
   },
   loadingSubtext: {
-    marginTop: 8,
-    fontSize: 12,
-    color: '#9CA3AF',
+    marginTop: spacing.sm,
+    fontSize: typography.size.caption,
+    fontFamily: typography.fontfamily.regular,
+    color: colors.textdark,
+    opacity: 0.5,
     textAlign: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: spacing.lg,
   },
   errorText: {
-    fontSize: 16,
-    color: '#6B7280',
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.regular,
+    color: colors.textdark,
+    opacity: 0.7,
     textAlign: 'center',
-    marginTop: 16,
-    marginBottom: 20,
-    paddingHorizontal: 20,
+    marginTop: spacing.md,
+    marginBottom: spacing.lg,
+    paddingHorizontal: spacing.lg,
   },
   retryButton: {
-    backgroundColor: '#A4D65E',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: colors.greenprimary,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
   },
   retryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
+    color: colors.primaryText,
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.semibold,
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 12,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontSize: typography.size.title + 6,
+    fontFamily: typography.fontfamily.bold,
+    color: colors.textdark,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 20,
-    marginBottom: 16,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    backgroundColor: '#FFFFFF',
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+    borderWidth: 1.5,
+    borderColor: colors.whiteOverlay,
   },
   searchIcon: {
-    marginRight: 8,
+    marginRight: spacing.sm,
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
-    color: '#1F2937',
-    paddingVertical: 4,
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.regular,
+    color: colors.textdark,
+    paddingVertical: spacing.xs,
   },
   clearButton: {
-    marginLeft: 8,
-    padding: 4,
+    marginLeft: spacing.sm,
+    padding: spacing.xs,
   },
   filtersContainer: {
-    marginBottom: 12,
+    marginBottom: spacing.sm,
     maxHeight: 60,
   },
   filtersContent: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
     alignItems: 'center',
   },
   filterButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 24,
-    backgroundColor: '#F3F4F6',
-    marginRight: 10,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.lg,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: colors.whiteOverlay,
+    marginRight: spacing.sm,
     minHeight: 40,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
   },
   filterButtonActive: {
-    backgroundColor: '#A4D65E',
-    shadowColor: '#A4D65E',
+    backgroundColor: colors.greenprimary,
+    shadowColor: colors.greenprimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 4,
   },
   filterText: {
-    fontSize: 15,
-    color: '#4B5563',
-    fontWeight: '600',
-    marginLeft: 6,
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.semibold,
+    color: colors.darkgreen,
+    marginLeft: spacing.xs,
   },
   filterTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '700',
+    color: colors.darkgreen,
+    fontFamily: typography.fontfamily.bold,
   },
 });

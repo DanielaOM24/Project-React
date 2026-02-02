@@ -1,4 +1,7 @@
+// Recipe Detail Screen Component
+
 import { recipesAPI } from '@/services/api';
+import { colors, radius, spacing, typography } from '@/styles/designSystem';
 import { Recipe } from '@/types/recipes';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
@@ -15,6 +18,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function RecipeDetailScreen() {
+  // Component State
   const { id, recipeData } = useLocalSearchParams<{ id: string; recipeData?: string }>();
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -22,6 +26,7 @@ export default function RecipeDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  // Effects
   useEffect(() => {
     const fetchRecipe = async () => {
       if (!id) {
@@ -88,7 +93,7 @@ export default function RecipeDetailScreen() {
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#A4D65E" />
+        <ActivityIndicator size="large" color={colors.greenprimary} />
         <Text style={styles.loadingText}>Cargando receta...</Text>
       </View>
     );
@@ -97,7 +102,7 @@ export default function RecipeDetailScreen() {
   if (error || !recipe) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <Ionicons name="alert-circle-outline" size={64} color="#FF6B6B" />
+        <Ionicons name="alert-circle-outline" size={64} color={colors.error} />
         <Text style={styles.errorText}>No se pudo cargar la receta</Text>
         <Pressable style={styles.backButton} onPress={() => router.back()}>
           <Text style={styles.backButtonText}>Volver</Text>
@@ -127,7 +132,7 @@ export default function RecipeDetailScreen() {
           {/* Tipo de comida */}
           <View style={styles.typeContainer}>
             <View style={styles.typeBadge}>
-              <Ionicons name="restaurant-outline" size={16} color="#A4D65E" />
+              <Ionicons name="restaurant-outline" size={16} color={colors.darkgreen} />
               <Text style={styles.typeText}>{recipe.typeFood}</Text>
             </View>
           </View>
@@ -141,17 +146,17 @@ export default function RecipeDetailScreen() {
           {/* Info Cards */}
           <View style={styles.infoContainer}>
             <View style={styles.infoCard}>
-              <Ionicons name="time-outline" size={24} color="#A4D65E" />
+              <Ionicons name="time-outline" size={24} color={colors.greenprimary} />
               <Text style={styles.infoValue}>{recipe.time} min</Text>
               <Text style={styles.infoLabel}>Tiempo</Text>
             </View>
             <View style={styles.infoCard}>
-              <Ionicons name="people-outline" size={24} color="#A4D65E" />
+              <Ionicons name="people-outline" size={24} color={colors.greenprimary} />
               <Text style={styles.infoValue}>{recipe.portion}</Text>
               <Text style={styles.infoLabel}>Porciones</Text>
             </View>
             <View style={styles.infoCard}>
-              <Ionicons name="flame-outline" size={24} color="#A4D65E" />
+              <Ionicons name="flame-outline" size={24} color={colors.greenprimary} />
               <Text style={styles.infoValue}>{recipe.calories}</Text>
               <Text style={styles.infoLabel}>Calorías</Text>
             </View>
@@ -207,30 +212,34 @@ const styles = StyleSheet.create({
   centerContent: {
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: spacing.lg,
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#6B7280',
+    marginTop: spacing.md,
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.medium,
+    color: colors.textdark,
+    opacity: 0.7,
   },
   errorText: {
-    fontSize: 16,
-    color: '#6B7280',
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.regular,
+    color: colors.textdark,
+    opacity: 0.7,
     textAlign: 'center',
-    marginTop: 16,
-    marginBottom: 20,
+    marginTop: spacing.md,
+    marginBottom: spacing.lg,
   },
   backButton: {
-    backgroundColor: '#A4D65E',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: colors.greenprimary,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: radius.md,
   },
   backButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
+    color: colors.darkgreen,
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.semibold,
   },
   heroContainer: {
     position: 'relative',
@@ -249,7 +258,7 @@ const styles = StyleSheet.create({
   closeButtonInner: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: radius.pill,
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
@@ -260,136 +269,144 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   content: {
-    padding: 20,
+    padding: spacing.lg,
   },
   typeContainer: {
-    marginBottom: 16,
+    marginBottom: spacing.md,
   },
   typeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: '#E8F5E9',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    gap: 6,
+    backgroundColor: colors.greenprimary,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.pill,
+    gap: spacing.xs,
   },
   typeText: {
-    color: '#A4D65E',
-    fontSize: 12,
-    fontWeight: '600',
+    color: colors.darkgreen,
+    fontSize: typography.size.caption,
+    fontFamily: typography.fontfamily.semibold,
     textTransform: 'capitalize',
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 8,
+    fontSize: typography.size.title + 2,
+    fontFamily: typography.fontfamily.bold,
+    color: colors.textdark,
+    marginBottom: spacing.sm,
   },
   description: {
-    fontSize: 16,
-    color: '#6B7280',
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.regular,
+    color: colors.textdark,
+    opacity: 0.7,
     lineHeight: 24,
-    marginBottom: 24,
+    marginBottom: spacing.lg,
   },
   infoContainer: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 32,
+    gap: spacing.sm,
+    marginBottom: spacing.xl,
   },
   infoCard: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    padding: spacing.md,
+    borderRadius: radius.md,
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm,
+    borderWidth: 1.5,
+    borderColor: colors.whiteOverlay,
   },
   infoValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontSize: typography.size.subtitle,
+    fontFamily: typography.fontfamily.bold,
+    color: colors.textdark,
   },
   infoLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '500',
+    fontSize: typography.size.caption,
+    fontFamily: typography.fontfamily.medium,
+    color: colors.textdark,
+    opacity: 0.7,
   },
   section: {
-    marginBottom: 32,
+    marginBottom: spacing.xl,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginBottom: 16,
+    gap: spacing.sm,
+    marginBottom: spacing.md,
   },
   sectionNumber: {
     width: 32,
     height: 32,
-    borderRadius: 16,
-    backgroundColor: '#E8F5E9',
+    borderRadius: radius.pill,
+    backgroundColor: colors.greenprimary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   sectionNumberText: {
-    color: '#A4D65E',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: colors.darkgreen,
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.bold,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2937',
+    fontSize: typography.size.subtitle,
+    fontFamily: typography.fontfamily.bold,
+    color: colors.textdark,
   },
   ingredientItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-    gap: 12,
+    borderBottomColor: colors.whiteOverlay,
+    gap: spacing.sm,
   },
   ingredientDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#A4D65E',
+    backgroundColor: colors.greenprimary,
   },
   ingredientName: {
     flex: 1,
-    fontSize: 16,
-    color: '#1F2937',
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.regular,
+    color: colors.textdark,
   },
   ingredientQuantity: {
-    fontSize: 16,
-    color: '#A4D65E',
-    fontWeight: '600',
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.semibold,
+    color: colors.greenprimary,
   },
   stepItem: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16,
+    gap: spacing.sm,
+    marginBottom: spacing.md,
   },
   stepNumber: {
     width: 28,
     height: 28,
-    borderRadius: 14,
-    backgroundColor: '#A4D65E',
+    borderRadius: radius.pill,
+    backgroundColor: colors.greenprimary,
     justifyContent: 'center',
     alignItems: 'center',
     flexShrink: 0,
   },
   stepNumberText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: 'bold',
+    color: colors.darkgreen,
+    fontSize: typography.size.caption,
+    fontFamily: typography.fontfamily.bold,
   },
   stepText: {
     flex: 1,
-    fontSize: 16,
-    color: '#6B7280',
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.regular,
+    color: colors.textdark,
+    opacity: 0.7,
     lineHeight: 24,
   },
 });

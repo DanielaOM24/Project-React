@@ -1,7 +1,8 @@
+// API Request Helper
+
 import { API_BASE_URL } from './config';
 import { getToken, removeToken } from './token';
 
-// Función helper para hacer peticiones
 export const apiRequest = async (
   endpoint: string,
   options: RequestInit = {}
@@ -13,36 +14,27 @@ export const apiRequest = async (
   };
 
   const isProtectedEndpoint = endpoint.includes('/api/');
+  let token: string | null = null;
   
   if (isProtectedEndpoint) {
-    // Obtener token solo para endpoints protegidos
-    const token = await getToken();
-    
+    token = await getToken();
     if (!token) {
-      console.error(`[API] No hay token disponible para ${endpoint}`);
-      console.error(`[API] tokenInMemory:`, token ? `${token.substring(0, 20)}...` : 'null');
-      if (typeof window !== 'undefined' && window.localStorage) {
-        console.error(`[API] localStorage token:`, window.localStorage.getItem('authToken') ? 'presente' : 'ausente');
-      }
       throw new Error('No estás autenticado. Por favor inicia sesión.');
     }
-    
-    // Asegurar que el token no tenga espacios ni caracteres extra
-    const cleanToken = token.trim();
-    headers.Authorization = `Bearer ${cleanToken}`;
-    console.log(`[API] Token incluido en petición a ${endpoint}:`, {
-      tokenPreview: cleanToken.substring(0, 20) + '...',
-      tokenLength: cleanToken.length,
-      headerValue: `Bearer ${cleanToken.substring(0, 20)}...`,
-    });
+    headers.Authorization = `Bearer ${token.trim()}`;
   }
 
   try {
-    const fullUrl = `${API_BASE_URL}${endpoint}`;
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+    const fullUrl = `${baseUrl}${cleanEndpoint}`;
     
-    // Crear un AbortController para timeout
+    if (!fullUrl.startsWith('http://') && !fullUrl.startsWith('https://')) {
+      throw new Error(`URL inválida: ${fullUrl}`);
+    }
+    
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos timeout
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
     
     try {
       const response = await fetch(fullUrl, {
@@ -52,6 +44,7 @@ export const apiRequest = async (
         mode: 'cors',
         credentials: 'omit',
         signal: controller.signal,
+        cache: 'no-store',
       });
       
       clearTimeout(timeoutId);
@@ -61,52 +54,35 @@ export const apiRequest = async (
       
       try {
         responseData = responseText ? JSON.parse(responseText) : {};
-      } catch (parseError) {
+      } catch {
         responseData = { message: responseText || 'Error desconocido' };
       }
 
       if (!response.ok) {
         const errorMessage = responseData.message || responseData.error || responseData.msg || `Error ${response.status}`;
         
-        console.error(`[API] Error en ${endpoint}:`, {
-          status: response.status,
-          statusText: response.statusText,
-          errorMessage,
-          hasToken: !!headers.Authorization,
-          tokenPreview: headers.Authorization ? headers.Authorization.substring(0, 30) + '...' : 'none',
-          responseData: responseData,
-          responseText: responseText.substring(0, 500),
-        });
-        
         if (response.status === 401) {
-          // 401 siempre significa no autorizado
-          console.warn('[API] Error 401 - Limpiando token');
           await removeToken();
           throw new Error('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
         }
         
         if (response.status === 403) {
-          // 403 puede ser por diferentes razones, verificar el mensaje
           const lowerMessage = errorMessage.toLowerCase();
-          console.warn('[API] Error 403 - Analizando mensaje:', lowerMessage);
+          const isAuthError = lowerMessage.includes('token') || 
+            lowerMessage.includes('expired') || 
+            lowerMessage.includes('expirado') || 
+            lowerMessage.includes('unauthorized') ||
+            lowerMessage.includes('no autorizado') ||
+            lowerMessage.includes('session');
           
-          if (lowerMessage.includes('token') || lowerMessage.includes('expired') || 
-              lowerMessage.includes('expirado') || lowerMessage.includes('unauthorized') ||
-              lowerMessage.includes('no autorizado') || lowerMessage.includes('acceso denegado') ||
-              lowerMessage.includes('forbidden') || lowerMessage.includes('session')) {
-            console.warn('[API] Error 403 relacionado con autenticación - Limpiando token');
+          if (isAuthError) {
             await removeToken();
             throw new Error('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
           }
-          
-          // Si es 403 pero no es por token, mostrar el error original con más detalles
-          console.error('[API] Error 403 no relacionado con autenticación:', errorMessage);
           throw new Error(errorMessage || 'Acceso denegado. Verifica tus permisos.');
         }
         
-        // Para otros errores HTTP, usar el mensaje del servidor
         if (response.status >= 500) {
-          // Intentar obtener más detalles del error del servidor
           const serverError = responseData.error || responseData.message || responseData.msg;
           if (serverError && typeof serverError === 'string' && serverError.length > 0) {
             throw new Error(serverError);
@@ -114,7 +90,6 @@ export const apiRequest = async (
           throw new Error('Error del servidor. Por favor intenta más tarde.');
         }
         
-        // Para errores 400 (Bad Request), mostrar el mensaje específico del servidor
         if (response.status === 400) {
           const badRequestError = responseData.error || responseData.message || responseData.msg;
           if (badRequestError && typeof badRequestError === 'string') {
@@ -129,35 +104,26 @@ export const apiRequest = async (
       return responseData;
     } catch (fetchError: any) {
       clearTimeout(timeoutId);
-      
-      // Si es un error de abort (timeout)
       if (fetchError.name === 'AbortError') {
-        console.error('[API] Timeout en petición:', endpoint);
         throw new Error('La petición tardó demasiado. Por favor intenta nuevamente.');
       }
-      
       throw fetchError;
     }
   } catch (error: any) {
-    // Si es un error de red u otro tipo
+    if (error?.message && error.message.includes('No static resource')) {
+      throw new Error('Error de conexión con el servidor. Por favor verifica tu conexión a internet e intenta nuevamente.');
+    }
+    
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      console.error('[API] Error de red:', error);
       throw new Error('Error de conexión. Verifica tu conexión a internet.');
     }
     
-    // Si es un error de abort (timeout)
-    if (error.name === 'AbortError' || error.message?.includes('timeout') || error.message?.includes('tardó demasiado')) {
+    if (error.name === 'AbortError' || error.message?.includes('timeout')) {
       throw error;
     }
     
-    // Si el error ya tiene un mensaje formateado, usarlo
     if (error.message && (error.message.includes('Error') || error.message.includes('sesión') || error.message.includes('conexión'))) {
       throw error;
-    }
-    
-    // Si es un error desconocido, formatearlo
-    if (error.message && !error.message.includes('Error')) {
-      throw new Error(`Error de conexión: ${error.message}`);
     }
     
     throw error;

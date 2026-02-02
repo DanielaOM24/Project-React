@@ -1,227 +1,183 @@
-# NutriLens - Aplicación de Gestión Nutricional
+# NutriLens
 
-NutriLens es una aplicación móvil desarrollada con React Native y Expo que permite a los usuarios gestionar su perfil nutricional, recibir recomendaciones personalizadas y realizar un seguimiento de sus objetivos de salud.
+NutriLens is a mobile application designed to help users manage their nutritional profile, track daily meals, and achieve their health goals through personalized recommendations and meal analysis.
 
-## 🚀 Características Principales
+## Features
 
-### Autenticación
-- **Registro de usuarios**: Creación de cuenta con información personal básica
-- **Inicio de sesión**: Autenticación con email y contraseña
-- **Login con Google**: (Preparado para implementación futura)
-- **Gestión de sesión**: Tokens JWT con persistencia segura
+### Authentication & Onboarding
+- User registration with email and password
+- Secure login with JWT token management
+- Personalized onboarding flow to capture user preferences and goals
+- Profile management with editable nutritional information
 
-### Onboarding
-- **Flujo de preguntas personalizado**: 7 preguntas para conocer las preferencias del usuario
-- **Objetivos**: Bajar de peso, mantener peso, o ganar masa muscular
-- **Nivel de actividad**: Bajo, medio o alto
-- **Preferencias alimentarias**: Normal o vegetariana
-- **Datos personales**: Edad, peso y estatura
+### Meal Tracking
+- Photo-based meal registration using device camera
+- Audio-based meal registration for voice descriptions
+- AI-powered meal analysis with detailed nutritional breakdown
+- Daily calorie and macronutrient tracking
+- Meal history with visual timeline
 
-### Perfil de Usuario
-- **Visualización de datos**: Muestra información completa del perfil nutricional
-- **Edición de perfil**: Actualización de todos los campos del perfil
-- **Objetivos editables**: Cambio de objetivo y nivel de actividad
-- **Cálculo de calorías**: Visualización de calorías diarias recomendadas
+### Dashboard
+- Daily calorie progress visualization
+- Macronutrient breakdown (proteins, carbs, fats)
+- Meal summary by type (breakfast, lunch, dinner, snack)
+- Real-time goal tracking
 
-### Navegación
-- **Bottom Tabs**: Navegación principal con 5 pestañas
-  - Inicio
-  - Recetas
-  - Cámara (destacada)
-  - Chat
-  - Perfil
-- **Diseño "Liquid Glass"**: Efecto visual moderno en las barras de navegación
+### Recipes
+- Personalized recipe recommendations based on user profile
+- Filter recipes by meal type
+- Detailed recipe view with ingredients and preparation steps
+- Nutritional information per recipe
 
-## 📱 Plataformas Soportadas
+### Chat Assistant
+- Conversational interface for nutritional guidance
+- Goal-based recommendations
+- Meal planning assistance
 
-- **iOS**: Compatible con iPhone y iPad
-- **Android**: Compatible con dispositivos Android
-- **Web**: Versión web responsive
+## Technology Stack
 
-## 🛠️ Tecnologías Utilizadas
+- **Framework**: React Native with Expo SDK 54
+- **Language**: TypeScript 5.9.2
+- **Navigation**: Expo Router 6.0.22
+- **State Management**: React Context API
+- **Storage**: AsyncStorage (mobile) / localStorage (web)
+- **UI Components**: Custom design system with Ionicons
+- **Backend**: REST API integration
 
-### Framework y Librerías Principales
-- **Expo SDK 54**: Framework para desarrollo multiplataforma
-- **React Native 0.81.5**: Framework base
-- **React 19.1.0**: Biblioteca de UI
-- **TypeScript 5.9.2**: Tipado estático
-
-### Navegación
-- **Expo Router 6.0.22**: Sistema de navegación basado en archivos
-- **React Navigation**: Navegación entre pantallas
-
-### UI/UX
-- **Expo Linear Gradient**: Gradientes y efectos visuales
-- **Expo Blur**: Efectos de desenfoque (liquid glass)
-- **React Native Reanimated**: Animaciones fluidas
-- **Expo Vector Icons**: Iconografía (Ionicons)
-
-### Almacenamiento
-- **AsyncStorage**: Almacenamiento local para React Native
-- **localStorage**: Almacenamiento local para web
-
-### Estado y Contexto
-- **React Context API**: Gestión de estado global (autenticación)
-
-## 📁 Estructura del Proyecto
+## Project Structure
 
 ```
 Onboarding-Nutrilens/
-├── app/                    # Pantallas de la aplicación (Expo Router)
-│   ├── (tabs)/            # Pantallas con navegación por tabs
-│   │   ├── index.tsx      # Onboarding
-│   │   ├── home.tsx       # Pantalla de inicio
-│   │   ├── recipes.tsx    # Pantalla de recetas
-│   │   ├── register.tsx   # Pantalla de cámara
-│   │   ├── chat.tsx       # Pantalla de chat
-│   │   └── profile.tsx    # Perfil de usuario
-│   ├── index.tsx          # Pantalla inicial (login/registro)
-│   ├── login.tsx          # Pantalla de login
-│   ├── register.tsx       # Pantalla de registro
-│   └── success.tsx        # Pantalla de éxito
-├── components/             # Componentes reutilizables
-│   ├── BottomTabs.tsx     # Barra de navegación del onboarding
-│   ├── MainBottomTabs.tsx # Barra de navegación principal
-│   ├── NumberSelector.tsx # Selector numérico
-│   └── ui/                # Componentes UI
-│       └── GradientBackground.tsx
-├── contexts/               # Contextos de React
-│   └── AuthContext.tsx    # Contexto de autenticación
-├── services/               # Servicios de API (modularizado)
-│   ├── api.ts             # Archivo principal (re-exportaciones)
-│   ├── types.ts           # Tipos e interfaces TypeScript
-│   ├── config.ts          # Configuración (URL base)
-│   ├── token.ts           # Gestión de tokens
-│   ├── apiRequest.ts      # Helper para peticiones HTTP
-│   ├── auth.ts            # API de autenticación
-│   ├── profile.ts         # API de perfil
-│   └── converters.ts      # Funciones de conversión
-├── styles/                 # Sistema de diseño
-│   ├── designSystem.ts    # Colores, tipografía, espaciado
-│   ├── backgrounds.ts     # Gradientes predefinidos
-│   └── index.ts           # Exportaciones centralizadas
-├── utils/                  # Utilidades
-│   ├── onboardingStorage.ts # Almacenamiento de datos de onboarding
-│   └── registerStorage.ts   # Almacenamiento temporal de registro
-├── assets/                 # Recursos estáticos
-│   └── images/            # Imágenes e iconos
-├── app.json               # Configuración de Expo
-└── package.json           # Dependencias del proyecto
+├── app/                    # Application screens (Expo Router)
+│   ├── (tabs)/            # Tab navigation screens
+│   │   ├── index.tsx      # Onboarding flow
+│   │   ├── home.tsx       # Dashboard
+│   │   ├── recipes.tsx    # Recipe browser
+│   │   ├── register.tsx   # Meal registration
+│   │   ├── chat.tsx       # Chat assistant
+│   │   └── profile.tsx   # User profile
+│   ├── index.tsx          # Initial screen
+│   ├── login.tsx          # Login screen
+│   └── register.tsx       # Registration screen
+├── components/            # Reusable components
+│   ├── buttons/          # Button components
+│   ├── recipes/          # Recipe components
+│   └── ui/               # UI primitives
+├── contexts/             # React contexts
+│   └── AuthContext.tsx   # Authentication state
+├── services/             # API services
+│   ├── api.ts            # Main API exports
+│   ├── apiRequest.ts     # HTTP request helper
+│   ├── auth.ts           # Authentication API
+│   ├── meals.ts          # Meal analysis API
+│   ├── profile.ts        # Profile API
+│   └── recipes.ts        # Recipes API
+├── types/                # TypeScript type definitions
+│   ├── api.type.ts       # API request/response types
+│   ├── meals.type.ts     # Meal-related types
+│   ├── recipes.ts        # Recipe types
+│   └── user.type.ts      # User profile types
+├── utils/                # Utility functions
+│   ├── audio.ts          # Audio recording utilities
+│   ├── camera.ts         # Camera utilities
+│   ├── image.ts          # Image processing
+│   └── translations.ts   # Translation helpers
+├── styles/               # Design system
+│   └── designSystem.ts   # Colors, typography, spacing
+└── ai/                   # AI integration
+    ├── chat.service.ts    # Chat AI service
+    └── meal-analysis.service.ts  # Meal analysis AI
 ```
 
-## 🚦 Flujo de la Aplicación
+## Installation
 
-1. **Pantalla Inicial** (`app/index.tsx`)
-   - Usuario ve opciones para iniciar sesión o registrarse
-   - Si ya está autenticado, redirige al perfil
+### Prerequisites
+- Node.js 18 or higher
+- npm or yarn
+- Expo CLI (install globally or use npx)
 
-2. **Registro** (`app/register.tsx`)
-   - Usuario ingresa: nombre, email y contraseña
-   - Los datos se guardan temporalmente
-   - Redirige al flujo de onboarding
-
-3. **Onboarding** (`app/(tabs)/index.tsx`)
-   - 7 preguntas sobre objetivos, preferencias y datos personales
-   - Al completar, se registra el usuario con todos los datos
-   - Redirige al perfil
-
-4. **Login** (`app/login.tsx`)
-   - Usuario ingresa email y contraseña
-   - Obtiene tokens de autenticación
-   - Redirige al perfil
-
-5. **Perfil** (`app/(tabs)/profile.tsx`)
-   - Visualiza información del usuario
-   - Permite editar todos los campos
-   - Muestra calorías diarias recomendadas
-
-## 🎨 Sistema de Diseño
-
-### Colores
-- **Verde Principal**: `#A4D65E` - Color de marca
-- **Verde Secundario**: `#89F336` - Gradientes
-- **Texto Principal**: `#1F2937` - Gris oscuro
-- **Texto Secundario**: `#6B7280` - Gris medio
-- **Fondo**: `#FFFFFF` - Blanco
-
-### Tipografía
-- **Fuente Principal**: Sistema (San Francisco en iOS, Roboto en Android)
-- **Tamaños**: xs (12px) a 4xl (36px)
-
-### Espaciado
-- Sistema consistente: xs (4px) a xl (32px)
-
-## 🔐 Seguridad
-
-- **Tokens JWT**: Autenticación segura con accessToken y refreshToken
-- **Almacenamiento seguro**: Tokens guardados en AsyncStorage (mobile) o localStorage (web)
-- **Validación de sesión**: Verificación automática de tokens en peticiones protegidas
-- **Manejo de errores**: Limpieza automática de tokens expirados
-
-## 📦 Instalación y Uso
-
-### Requisitos Previos
-- Node.js 18+ 
-- npm o yarn
-- Expo CLI (instalado globalmente o vía npx)
-
-### Instalación
+### Setup
 
 ```bash
-# Instalar dependencias
+# Install dependencies
 npm install
 
-# Iniciar servidor de desarrollo
+# Start development server
 npm start
 
-# Ejecutar en plataforma específica
+# Run on specific platform
 npm run android  # Android
-npm run ios      # iOS
-npm run web      # Web
+npm run ios       # iOS
+npm run web       # Web browser
 ```
 
-### Scripts Disponibles
+## Configuration
 
-- `npm start` - Inicia el servidor de desarrollo con limpieza de caché
-- `npm run android` - Ejecuta en Android
-- `npm run ios` - Ejecuta en iOS
-- `npm run web` - Ejecuta en navegador web
-- `npm run lint` - Ejecuta el linter
+The application connects to a backend REST API. Configure the API base URL in `services/config.ts`:
 
-## 🌐 Backend
+```typescript
+export const API_BASE_URL = 'https://nutrilens-0x37.onrender.com';
+```
 
-La aplicación se conecta con un backend REST API desplegado en Render:
-- **URL Base**: `https://nutrilens-0x37.onrender.com`
-- **Documentación**: Ver `BACKEND_INTEGRATION.md` para detalles completos
+## Design System
 
-## 📝 Notas de Desarrollo
+The application uses a consistent design system defined in `styles/designSystem.ts`:
 
-- **Fast Refresh**: Habilitado para desarrollo rápido
-- **TypeScript**: Tipado estricto en todo el proyecto
-- **Modularización**: Código organizado en módulos reutilizables
-- **Responsive**: Diseño adaptativo para diferentes tamaños de pantalla
+- **Primary Color**: `#A4D65E` (Lime green)
+- **Dark Green**: `#1F2937` (Text and accents)
+- **Background**: `#FFFFFF` (White)
+- **Typography**: System fonts with consistent sizing
+- **Spacing**: 4px base unit system
 
-## 🔄 Estado del Proyecto
+## Key Features Implementation
 
-### ✅ Implementado
-- Autenticación (login, registro)
-- Onboarding completo
-- Perfil de usuario (visualización y edición)
-- Navegación principal
-- Integración con backend
+### Meal Analysis
+Meal analysis is performed using AI services that process images or audio recordings. The analysis provides:
+- Detected foods with portions
+- Nutritional breakdown (calories, protein, carbs, fats)
+- Meal type classification
 
-### 🚧 En Desarrollo
-- Pantallas de recetas
-- Funcionalidad de cámara
-- Sistema de chat
-- Login con Google
+### Authentication Flow
+1. User registers with email and password
+2. Completes onboarding questionnaire
+3. Receives JWT tokens (access and refresh)
+4. Tokens stored securely for subsequent requests
 
-## 📄 Licencia
+### Data Synchronization
+All meal data is synchronized with the backend API. The dashboard automatically updates when new meals are registered.
 
-Este proyecto es privado.
+## Development Guidelines
 
-## 👥 Contribuidores
+### Code Organization
+- Types are centralized in the `types/` directory
+- Services are modularized by domain (auth, meals, profile, recipes)
+- Components follow a reusable pattern
+- Comments are minimal and section-based in English
 
-Desarrollado para NutriLens.
+### Error Handling
+- API errors are handled consistently through `apiRequest` helper
+- Session expiration is automatically detected and handled
+- User-friendly error messages are displayed
 
+### State Management
+- Authentication state managed via React Context
+- Local component state for UI interactions
+- API responses cached where appropriate
 
+## Building for Production
+
+```bash
+# Build for Android
+eas build --platform android
+
+# Build for iOS
+eas build --platform ios
+```
+
+## License
+
+This project is proprietary software developed for NutriLens.
+
+## Support
+
+For technical support or questions, please contact the development team.

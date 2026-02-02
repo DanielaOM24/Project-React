@@ -1,7 +1,6 @@
-// Variable para almacenar el token en memoria (para React Native)
-let tokenInMemory: string | null = null;
+// Token Management
 
-// Función para obtener el token almacenado
+let tokenInMemory: string | null = null;
 export const getToken = async (): Promise<string | null> => {
   if (tokenInMemory) {
     return tokenInMemory;
@@ -91,5 +90,20 @@ export const getTokenInMemory = (): string | null => {
 // Función interna para establecer el token en memoria (usada por authAPI)
 export const setTokenInMemory = (token: string): void => {
   tokenInMemory = token;
+};
+
+// Función para obtener el refresh token
+export const getRefreshToken = async (): Promise<string | null> => {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return window.localStorage.getItem('refreshToken');
+    }
+    
+    const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+    return await AsyncStorage.getItem('refreshToken');
+  } catch (error) {
+    console.error('[getRefreshToken] Error:', error);
+    return null;
+  }
 };
 

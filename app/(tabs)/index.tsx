@@ -1,17 +1,20 @@
+// Onboarding Screen Component
+
 import BottomTabs from '@/components/BottomTabs';
 import NumberSelector from '@/components/NumberSelector';
-import GradientBackground from '@/components/ui/GradientBackground';
 import { useAuth } from '@/contexts/AuthContext';
-import { colors, radius, spacing } from '@/styles/designSystem';
+import { colors, radius, spacing, typography } from '@/styles/designSystem';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Dimensions, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+// Constants
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
 
+// Types
 type AnswerType = string | null | { age?: number; weight?: number; height?: number };
 
 interface Question {
@@ -79,7 +82,6 @@ const questions: Question[] = [
     options: [
       { id: 'normal', label: 'Normal', icon: 'restaurant-outline' },
       { id: 'vegetarian', label: 'Vegetariana', icon: 'leaf-outline' },
-      { id: 'no-restrictions', label: 'Sin restricciones por ahora', icon: 'checkmark-circle-outline' },
     ],
   },
   {
@@ -105,14 +107,16 @@ const questions: Question[] = [
   },
 ];
 
+// Constants
 const totalSteps = questions.length;
 
-// Generar arrays de números para los pickers
+// Helper Functions
 const generateNumbers = (min: number, max: number): number[] => {
   return Array.from({ length: max - min + 1 }, (_, i) => min + i);
 };
 
 export default function HomeScreen() {
+  // Component State
   const [currentStep, setCurrentStep] = useState(1);
   const [answers, setAnswers] = useState<Record<number, AnswerType>>({});
   const insets = useSafeAreaInsets();
@@ -123,7 +127,7 @@ export default function HomeScreen() {
   
   // Para preguntas de opciones
   const selectedAnswer = currentQuestion?.type === 'options' 
-    ? (answers[currentQuestion.id] as string | null)
+    ? (answers[currentQuestion.id] as string | null | undefined)
     : null;
   
   // Para preguntas de formulario
@@ -136,8 +140,8 @@ export default function HomeScreen() {
     : false;
   
   const isNextEnabled = currentQuestion?.type === 'options' 
-    ? selectedAnswer !== null 
-    : isFormComplete;
+    ? (selectedAnswer !== null && selectedAnswer !== undefined && selectedAnswer !== '')
+    : (currentQuestion?.type === 'form' ? isFormComplete : false);
 
   // Animación de la barra de progreso
   const progressWidth = useRef(new Animated.Value(0)).current;
@@ -266,6 +270,11 @@ export default function HomeScreen() {
   };
 
   const handleNext = async () => {
+    // Validar que haya una respuesta antes de continuar
+    if (!isNextEnabled) {
+      return;
+    }
+    
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -318,7 +327,9 @@ export default function HomeScreen() {
           });
           
           // Registrar usuario
+          console.log('[Onboarding] Iniciando registro...');
           await authAPI.register(registerData);
+          console.log('[Onboarding] Registro exitoso');
           
           // Limpiar datos temporales
           await clearPendingRegisterData();
@@ -327,24 +338,34 @@ export default function HomeScreen() {
           const { getToken } = require('@/services/api');
           let token = await getToken();
           let attempts = 0;
-          const maxAttempts = 10;
+          const maxAttempts = 20;
           
           // Esperar hasta que el token esté disponible
           while (!token && attempts < maxAttempts) {
-            await new Promise(resolve => setTimeout(resolve, 50));
+            await new Promise(resolve => setTimeout(resolve, 100));
             token = await getToken();
             attempts++;
+            console.log(`[Onboarding] Intento ${attempts}/${maxAttempts} - Token:`, token ? 'Encontrado' : 'No encontrado');
           }
           
           if (!token) {
+            console.error('[Onboarding] No se pudo obtener el token después de', maxAttempts, 'intentos');
             Alert.alert('Error', 'No se pudo guardar tu sesión. Por favor inicia sesión manualmente.');
-            router.push('/login');
+            router.replace('/login');
             return;
           }
           
-          // Refrescar perfil y navegar al perfil
-          await refreshProfile();
-          router.push('/(tabs)/profile');
+          console.log('[Onboarding] Token obtenido, refrescando perfil...');
+          // Refrescar perfil y navegar al home
+          try {
+            await refreshProfile();
+            console.log('[Onboarding] Perfil refrescado, navegando al home...');
+          } catch (profileError) {
+            console.warn('[Onboarding] Error al refrescar perfil, continuando:', profileError);
+          }
+          
+          // Usar replace para evitar que el usuario pueda volver al onboarding
+          router.replace('/(tabs)/home');
         } else {
           // Si no hay datos de registro pendientes, solo guardar datos del onboarding
           // (esto es para usuarios que ya están registrados y solo están actualizando su perfil)
@@ -357,7 +378,8 @@ export default function HomeScreen() {
         }
       } catch (error: any) {
         console.error('[Onboarding] Error al completar:', error);
-        Alert.alert('Error', error?.message || 'Error al completar el onboarding. Por favor intenta de nuevo.');
+        const errorMessage = error?.message || error?.response?.data?.message || 'Error al completar el onboarding. Por favor intenta de nuevo.';
+        Alert.alert('Error', errorMessage);
       }
     }
   };
@@ -376,9 +398,9 @@ export default function HomeScreen() {
 
 
   return (
-    <GradientBackground type="darkPrimary" style={styles.container}>
+    <View style={styles.container}>
       {/* Barra de progreso */}
-      <View style={[styles.progressContainer, { top: insets.top + 20 }]}>
+      <View style={[styles.progressContainer, { top: insets.top + spacing.lg }]}>
         <View style={styles.progressBarBackground}>
           <Animated.View
             style={[
@@ -394,16 +416,18 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      <View style={[
-        styles.content, 
-        { 
-          paddingTop: isWeb ? 100 : insets.top + 80, 
-          paddingBottom: isWeb ? 120 : insets.bottom + 100,
-          maxWidth: isWeb ? 600 : '100%',
-          alignSelf: 'center',
-          width: isWeb ? '90%' : '100%',
-        }
-      ]}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content, 
+          { 
+            paddingTop: isWeb ? 100 : insets.top + 80, 
+            paddingBottom: isWeb ? 120 : insets.bottom + 100,
+            maxWidth: isWeb ? 600 : '100%',
+            alignSelf: 'center',
+            width: isWeb ? '90%' : '100%',
+          }
+        ]}
+        showsVerticalScrollIndicator={false}>
         {currentQuestion && (
           <View style={styles.contentWrapper}>
             <Animated.Text
@@ -436,7 +460,7 @@ export default function HomeScreen() {
                       ]}>
                       <TouchableOpacity
                         onPress={() => handleSelect(option.id)}
-                        activeOpacity={0.7}>
+                        activeOpacity={1}>
                         <Animated.View
                           style={{
                             transform: [{ scale: anim.selectScale }],
@@ -448,7 +472,7 @@ export default function HomeScreen() {
                                 <Ionicons
                                   name={option.icon as any}
                                   size={24}
-                                  color={isSelected ? colors.greenprimary : colors.secondaryText + '80'} // 50% opacity cuando no está seleccionado
+                                  color={isSelected ? colors.greenprimary : colors.darkgreen}
                                 />
                               </View>
 
@@ -466,7 +490,7 @@ export default function HomeScreen() {
                                   isSelected && styles.circleSelected,
                                 ]}>
                                 {isSelected && (
-                                  <Ionicons name="checkmark" size={16} color={colors.textdark} />
+                                  <Ionicons name="checkmark" size={16} color={colors.darkgreen} />
                                 )}
                               </View>
                             </View>
@@ -502,20 +526,21 @@ export default function HomeScreen() {
             )}
           </View>
         )}
-      </View>
+      </ScrollView>
       <BottomTabs
         onBack={currentStep > 1 ? handleBack : undefined}
         onNext={handleNext}
         nextEnabled={isNextEnabled}
         showBack={currentStep > 1}
       />
-    </GradientBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
   },
   // Barra de progreso
   progressContainer: {
@@ -535,7 +560,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
     height: 6,
-    backgroundColor: colors.whiteOverlay + '33', // 20% opacity
+    backgroundColor: colors.greenOverlay,
     borderRadius: radius.sm,
     overflow: 'hidden',
   },
@@ -564,13 +589,13 @@ const styles = StyleSheet.create({
       web: 28,
       default: 24,
     }) as number,
-    fontWeight: '700',
-    color: colors.primaryText,
+    fontFamily: typography.fontfamily.bold,
+    color: colors.darkgreen,
     marginBottom: spacing.xl,
     textAlign: 'center',
     paddingHorizontal: Platform.select({
       web: 40,
-      default: 0,
+      default: spacing.lg,
     }) as number,
     ...(Platform.OS === 'web' ? { maxWidth: 600 } : { maxWidth: '100%' }),
   },
@@ -593,24 +618,24 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   card: {
-    borderRadius: radius.pill,
+    borderRadius: radius.lg,
     overflow: 'hidden',
-    backgroundColor: colors.background,
+    backgroundColor: '#FFFFFF',
     width: '100%',
-    borderWidth: 1,
-    borderColor: colors.greenprimary + '33', // 20% opacity
+    borderWidth: 1.5,
+    borderColor: colors.whiteOverlay,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: colors.darkgreen,
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 12,
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
       },
       android: {
-        elevation: 4,
+        elevation: 2,
       },
       web: {
-        boxShadow: '0px 2px 12px rgba(200, 247, 94, 0.2)',
+        boxShadow: '0px 2px 8px rgba(16, 44, 24, 0.05)',
         cursor: 'pointer',
         transition: 'transform 0.2s ease, box-shadow 0.2s ease',
       } as any,
@@ -634,9 +659,9 @@ const styles = StyleSheet.create({
   circle: {
     width: 24,
     height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: colors.greenprimary + '66', // 40% opacity
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderColor: colors.whiteOverlay,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent',
@@ -654,9 +679,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cardText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: colors.primaryText,
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.medium,
+    color: colors.textdark,
     textAlign: 'left',
     lineHeight: 22,
   },
@@ -672,7 +697,7 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: 1,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.greenOverlay,
     width: '100%',
     marginBottom: 20,
   },

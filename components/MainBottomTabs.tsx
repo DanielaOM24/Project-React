@@ -1,3 +1,4 @@
+import { colors, radius, spacing, typography } from '@/styles/designSystem';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { usePathname, useRouter } from 'expo-router';
@@ -72,7 +73,8 @@ export default function MainBottomTabs({ activeTab }: MainBottomTabsProps) {
                     <Ionicons
                       name={(isActive ? tab.icon : tab.iconOutline) as any}
                       size={20}
-                      color={isActive ? '#A4D65E' : '#6B7280'}
+                      color={isActive ? colors.darkgreen : colors.darkgreen}
+                      style={{ opacity: isActive ? 1 : 0.6 }}
                     />
                     <Text
                       style={[
@@ -93,7 +95,7 @@ export default function MainBottomTabs({ activeTab }: MainBottomTabsProps) {
           activeOpacity={0.8}
           style={styles.cameraButtonWrapper}>
           <View style={styles.cameraButton}>
-            <Ionicons name="camera" size={26} color="#FFFFFF" />
+            <Ionicons name="camera" size={26} color={colors.darkgreen} />
           </View>
         </TouchableOpacity>
       </View>
@@ -107,7 +109,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: spacing.md,
   },
   wrapper: {
     width: '100%',
@@ -117,11 +119,11 @@ const styles = StyleSheet.create({
   },
   blurContainer: {
     width: '100%',
-    borderRadius: 24,
+    borderRadius: radius.lg,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    backgroundColor: colors.whiteOverlay,
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
+    borderColor: colors.whiteOverlay,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -156,14 +158,15 @@ const styles = StyleSheet.create({
     height: 56,
   },
   tabLabel: {
-    fontSize: 10,
-    color: '#6B7280',
-    marginTop: 3,
-    fontWeight: '500',
+    fontSize: typography.size.caption,
+    fontFamily: typography.fontfamily.medium,
+    color: colors.darkgreen,
+    marginTop: spacing.xs,
+    opacity: 0.8,
   },
   tabLabelActive: {
-    color: '#A4D65E',
-    fontWeight: '600',
+    color: colors.darkgreen,
+    fontFamily: typography.fontfamily.semibold,
   },
   cameraButtonWrapper: {
     position: 'absolute',
@@ -174,13 +177,13 @@ const styles = StyleSheet.create({
   cameraButton: {
     width: 56,
     height: 56,
-    borderRadius: 28,
-    backgroundColor: '#A4D65E',
+    borderRadius: radius.pill,
+    backgroundColor: colors.greenprimary,
     justifyContent: 'center',
     alignItems: 'center',
     ...Platform.select({
       ios: {
-        shadowColor: '#A4D65E',
+        shadowColor: colors.greenprimary,
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.5,
         shadowRadius: 20,

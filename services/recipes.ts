@@ -1,12 +1,9 @@
+// Recipes API Service
+
 import { apiRequest } from './apiRequest';
 import { Recipe, TypeFood } from '@/types/recipes';
 
 export const recipesAPI = {
-  /**
-   * Obtiene recetas del backend
-   * @param typeFood - Tipo de comida (BREAKFAST, LUNCH, DINNER, SNACK) - REQUERIDO
-   * @returns Lista de recetas
-   */
   getRecipes: async (typeFood: TypeFood): Promise<Recipe[]> => {
     try {
       // El backend requiere el parámetro typeFood siempre

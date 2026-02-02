@@ -1,6 +1,5 @@
-import { colors, radius } from '@/styles/designSystem';
+import { colors, radius, spacing, typography } from '@/styles/designSystem';
 import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import React, { useRef } from 'react';
 import {
@@ -16,29 +15,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
-
-// Componente wrapper para BlurView con fallback para web
-const BlurViewWrapper = ({ children, style, intensity, tint }: any) => {
-  if (isWeb) {
-    return (
-      <View style={[
-        style,
-        {
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-        }
-      ]}>
-        {children}
-      </View>
-    );
-  }
-  return (
-    <BlurView intensity={intensity} tint={tint} style={style}>
-      {children}
-    </BlurView>
-  );
-};
 
 interface BottomTabsProps {
   onBack?: () => void;
@@ -102,7 +78,8 @@ export default function BottomTabs({ onBack, onNext, nextDisabled = false, nextE
       }),
     ]).start();
 
-    if (onNext) {
+    // Solo ejecutar si está habilitado
+    if (nextEnabled && !nextDisabled && onNext) {
       onNext();
     }
   };
@@ -121,55 +98,44 @@ export default function BottomTabs({ onBack, onNext, nextDisabled = false, nextE
       {showBack && (
         <TouchableOpacity
           onPress={handleBack}
-          activeOpacity={0.7}
+          activeOpacity={0.8}
           style={styles.backButtonWrapper}>
-          <BlurViewWrapper intensity={40} tint="light" style={styles.backButtonContainer}>
-            <Animated.View
-              style={[
-                styles.backButtonContent,
-                {
-                  transform: [{ scale: backScale }],
-                },
-              ]}>
-              <Ionicons
-                name="arrow-back"
-                size={24}
-                color={colors.primaryText}
-              />
-            </Animated.View>
-          </BlurViewWrapper>
+          <Animated.View
+            style={[
+              styles.backButtonContainer,
+              {
+                transform: [{ scale: backScale }],
+              },
+            ]}>
+            <Ionicons
+              name="arrow-back"
+              size={24}
+              color={colors.darkgreen}
+            />
+          </Animated.View>
         </TouchableOpacity>
       )}
 
-      {/* Botón Siguiente - Bottom Tab */}
+      {/* Botón Siguiente */}
       <TouchableOpacity
         onPress={handleNext}
-        activeOpacity={nextEnabled && !nextDisabled ? 0.7 : 1}
+        activeOpacity={nextEnabled && !nextDisabled ? 0.8 : 1}
         disabled={!nextEnabled || nextDisabled}
-        style={[
-          styles.nextButtonWrapper,
-          (!nextEnabled || nextDisabled) && styles.nextButtonWrapperDisabled,
-        ]}>
-        <BlurViewWrapper
-          intensity={40}
-          tint="light"
+        style={styles.nextButtonWrapper}>
+        <Animated.View
           style={[
-            styles.nextButtonContainer,
-            nextEnabled && styles.nextButtonContainerActive,
+            (!nextEnabled || nextDisabled) ? styles.nextButtonContainerDisabled : styles.nextButtonContainer,
+            {
+              transform: [{ scale: nextScale }],
+            },
           ]}>
-          <Animated.View
-            style={[
-              styles.nextButtonContent,
-              {
-                transform: [{ scale: nextScale }],
-                opacity: nextEnabled && !nextDisabled ? 1 : 0.5,
-              },
-            ]}>
-            <Text style={[styles.nextText, nextEnabled && !nextDisabled && styles.nextTextActive]}>
-              Siguiente
-            </Text>
-          </Animated.View>
-        </BlurViewWrapper>
+          <Text style={[
+            styles.nextText,
+            (!nextEnabled || nextDisabled) && styles.nextTextDisabled
+          ]}>
+            Siguiente
+          </Text>
+        </Animated.View>
       </TouchableOpacity>
     </View>
   );
@@ -199,93 +165,56 @@ const styles = StyleSheet.create({
   backButtonContainer: {
     width: 56,
     height: 56,
-    borderRadius: radius.pill / 2,
-    overflow: 'hidden',
-    backgroundColor: colors.whiteOverlay,
+    borderRadius: radius.pill,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1.5,
-    borderColor: colors.greenprimary + '66', // 40% opacity
+    borderColor: colors.whiteOverlay,
+    alignItems: 'center',
+    justifyContent: 'center',
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: 0.3,
-        shadowRadius: 32,
+        shadowColor: colors.darkgreen,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
       },
       android: {
-        elevation: 24,
+        elevation: 2,
       },
     }),
   },
-  backButtonContent: {
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  // Botón Siguiente - Bottom Tab
+  // Botón Siguiente
   nextButtonWrapper: {
     flex: 1,
-  },
-  nextButtonWrapperDisabled: {
-    opacity: 0.6,
+    maxWidth: 400,
   },
   nextButtonContainer: {
-    borderRadius: radius.pill,
-    overflow: 'hidden',
-    backgroundColor: colors.whiteOverlay,
-    borderWidth: 1.5,
-    borderColor: colors.greenprimary + '66', // 40% opacity
-    opacity: 0.5,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: 0.3,
-        shadowRadius: 32,
-      },
-      android: {
-        elevation: 24,
-      },
-      web: {
-        boxShadow: '0px 12px 32px rgba(0, 0, 0, 0.3)',
-        cursor: 'pointer',
-        transition: 'all 0.3s ease',
-      } as any,
-    }),
-  },
-  nextButtonContent: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    minHeight: 52,
+    borderRadius: radius.lg,
+    backgroundColor: colors.greenprimary,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    minHeight: 56,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  nextButtonContainerActive: {
-    backgroundColor: colors.greenprimary,
-    borderColor: colors.greenprimary,
-    opacity: 1,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#A4D65E',
-        shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: 0.4,
-        shadowRadius: 32,
-      },
-      android: {
-        elevation: 24,
-      },
-      web: {
-        boxShadow: '0px 12px 32px rgba(164, 214, 94, 0.4)',
-        cursor: 'pointer',
-      } as any,
-    }),
+  nextButtonContainerDisabled: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: colors.whiteOverlay,
+    borderRadius: radius.lg,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    minHeight: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   nextText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.secondaryText + 'CC', // 80% opacity
+    fontSize: typography.size.body + 2,
+    fontFamily: typography.fontfamily.semibold,
+    color: colors.darkgreen,
   },
-  nextTextActive: {
+  nextTextDisabled: {
     color: colors.textdark,
+    opacity: 0.5,
   },
 });
