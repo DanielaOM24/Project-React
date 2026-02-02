@@ -184,14 +184,33 @@ async function callGeminiWithImage(
   );
 
   const data = (await res.json()) as {
+    error?: { code?: number; message?: string; status?: string };
     candidates?: Array<{
       content?: { parts?: Array<{ text?: string }> };
+      finishReason?: string;
     }>;
   };
 
+  if (!res.ok) {
+    if (res.status === 429) {
+      throw new Error(
+        'Has superado la cuota gratuita de Gemini. Espera 1–2 minutos o crea una nueva API key en aistudio.google.com/app/apikey'
+      );
+    }
+    const msg = data?.error?.message || `Error ${res.status}`;
+    throw new Error(`Error en análisis de IA: ${res.status} ${data?.error?.status || ''}: ${msg}`);
+  }
+  if (data?.error?.message) {
+    throw new Error(`Error en análisis de IA: ${data.error.message}`);
+  }
+
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (typeof text === 'string') return text;
-  return '{}';
+  if (typeof text === 'string' && text.trim()) return text;
+  const reason = data?.candidates?.[0]?.finishReason;
+  if (reason === 'SAFETY' || reason === 'BLOCKED') {
+    throw new Error('La imagen fue filtrada. Usa una foto clara de comida.');
+  }
+  throw new Error('No se pudo generar respuesta del análisis. Intenta de nuevo.');
 }
 
 // Función helper para llamar a Gemini con texto
@@ -216,14 +235,33 @@ async function callGeminiText(
   );
 
   const data = (await res.json()) as {
+    error?: { code?: number; message?: string; status?: string };
     candidates?: Array<{
       content?: { parts?: Array<{ text?: string }> };
+      finishReason?: string;
     }>;
   };
 
+  if (!res.ok) {
+    if (res.status === 429) {
+      throw new Error(
+        'Has superado la cuota gratuita de Gemini. Espera 1–2 minutos o crea una nueva API key en aistudio.google.com/app/apikey'
+      );
+    }
+    const msg = data?.error?.message || `Error ${res.status}`;
+    throw new Error(`Error en análisis de IA: ${res.status} ${data?.error?.status || ''}: ${msg}`);
+  }
+  if (data?.error?.message) {
+    throw new Error(`Error en análisis de IA: ${data.error.message}`);
+  }
+
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (typeof text === 'string') return text;
-  return '{}';
+  if (typeof text === 'string' && text.trim()) return text;
+  const reason = data?.candidates?.[0]?.finishReason;
+  if (reason === 'SAFETY' || reason === 'BLOCKED') {
+    throw new Error('La respuesta fue filtrada. Intenta con otra descripción.');
+  }
+  throw new Error('No se pudo generar respuesta del análisis. Intenta de nuevo.');
 }
 
 // Construir el system prompt para análisis detallado

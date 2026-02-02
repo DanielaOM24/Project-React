@@ -3,7 +3,8 @@
  */
 export const AI_CONFIG = {
   GEMINI_API_KEY: process.env.EXPO_PUBLIC_GEMINI_API_KEY || '',
-  MODEL: 'gemini-2.0-flash',
+  /** Modelo con cuota gratuita (15 RPM, 1000 RPD): texto, imagen, audio */
+  MODEL: 'gemini-2.5-flash-lite',
 
   /**
    * Temperatura para las respuestas (0-2)
