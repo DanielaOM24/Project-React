@@ -50,30 +50,20 @@ export async function analyzeMealImage(
     const parts: Part[] = [
       { inlineData: { mimeType, data: base64 } },
       {
-        text: `Analiza esta imagen de comida y responde SOLO con un JSON válido en este formato exacto. TODAS las respuestas deben estar en ESPAÑOL:
-{
-  "message": "Mensaje motivacional y feedback sobre la comida en español (2-3 oraciones con emojis)",
-  "foods": [
-    {
-      "name": "Nombre del alimento en español",
-      "icon": "nombre-del-icono-ionicons",
-      "portion": "≈ Descripción de la porción estimada en español",
-      "calories": 100,
-      "protein": 10.5,
-      "carbs": 20.0,
-      "fats": 5.0
-    }
-  ]
-}
+        text: `Analiza esta imagen de comida y responde SOLO con un JSON válido (nada antes ni después).
 
-IMPORTANTE:
-- TODAS las respuestas deben estar en ESPAÑOL
-- El mensaje debe ser amigable, motivacional y relacionado con el objetivo del usuario, en español
-- Detecta TODOS los alimentos visibles en la imagen
-- Usa iconos de Ionicons apropiados (ej: "restaurant", "fish", "egg", "leaf", "cafe", etc.)
-- Las porciones deben ser estimaciones realistas en español (ej: "≈ 1 taza", "≈ El tamaño de tu palma", "≈ 2 puños")
-- Los valores nutricionales deben ser realistas y sumar correctamente
-- Responde SOLO con el JSON, sin texto adicional`,
+"message" (texto que verá el usuario):
+- Empieza con un elogio breve y variado (ej: "¡Muy bien! Esta comida se ve nutritiva.", "¡Qué buena elección! Se ve equilibrada.", "¡Excelente! Has combinado bien los grupos.").
+- Di qué alimentos ves en la imagen, de forma natural: "He visto arroz, pollo y ensalada verde." o "Identifiqué: pasta, tomate y albahaca."
+- Opcional: una oración de consejo práctico (ej: "Así mantienes buena energía para el día."). Máximo 2-3 oraciones en total. 1-2 emojis. Tono cercano, en español.
+
+"foods": Lista todos los alimentos visibles. Cada uno: "name" (español), "icon" (restaurant, fish, egg, leaf, cafe, nutrition...), "portion" (ej: "≈ 1 taza"), "calories", "protein", "carbs", "fats" (números).
+
+Ejemplo de estructura (adapta el mensaje a lo que veas):
+{
+  "message": "¡Muy bien! Esta comida se ve nutritiva. He visto arroz, pollo y ensalada. Buen balance de proteína y verduras. 🍽️",
+  "foods": [ { "name": "Arroz", "icon": "restaurant", "portion": "≈ 1 taza", "calories": 200, "protein": 4, "carbs": 44, "fats": 0 }, ... ]
+}`,
       },
     ];
 
@@ -115,30 +105,20 @@ export async function analyzeMealAudio(
           {
             text: `El usuario describió su comida: "${transcript}"
 
-Analiza esta descripción y responde SOLO con un JSON válido en este formato exacto. TODAS las respuestas deben estar en ESPAÑOL:
-{
-  "message": "Mensaje motivacional y feedback sobre la comida en español (2-3 oraciones con emojis)",
-  "foods": [
-    {
-      "name": "Nombre del alimento en español",
-      "icon": "nombre-del-icono-ionicons",
-      "portion": "≈ Descripción de la porción estimada en español",
-      "calories": 100,
-      "protein": 10.5,
-      "carbs": 20.0,
-      "fats": 5.0
-    }
-  ]
-}
+Responde SOLO con un JSON válido (nada antes ni después).
 
-IMPORTANTE:
-- TODAS las respuestas deben estar en ESPAÑOL
-- El mensaje debe ser amigable, motivacional y relacionado con el objetivo del usuario, en español
-- Detecta TODOS los alimentos mencionados
-- Usa iconos de Ionicons apropiados
-- Las porciones deben ser estimaciones realistas en español (ej: "≈ 1 taza", "≈ El tamaño de tu palma", "≈ 2 puños")
-- Los valores nutricionales deben ser realistas y sumar correctamente
-- Responde SOLO con el JSON, sin texto adicional`,
+"message":
+- Apertura positiva y variada (ej: "¡Muy bien!", "¡Qué buena descripción!", "¡Excelente!").
+- Di qué alimentos identificaste en su descripción: "He identificado: [lista]." o "Has mencionado: [lista]."
+- Opcional: una oración corta de consejo o motivación. 2-3 oraciones en total. 1-2 emojis. Tono cercano, en español.
+
+"foods": Todos los alimentos que haya mencionado. Cada uno: name (español), icon (restaurant, fish, egg, leaf, cafe...), portion (ej: "≈ 1 taza"), calories, protein, carbs, fats (números).
+
+Ejemplo:
+{
+  "message": "¡Qué buena descripción! He identificado: huevos, pan y café. Un desayuno que te da energía para arrancar el día. ☀️",
+  "foods": [ { "name": "Huevos", "icon": "egg", "portion": "≈ 2 unidades", "calories": 140, "protein": 12, "carbs": 1, "fats": 10 }, ... ]
+}`,
           },
         ],
       },
@@ -268,20 +248,22 @@ async function callGeminiText(
 function buildDetailedAnalysisSystemPrompt(userContext: UserContext): string {
   const objetivo = userContext.objetivo || 'mantener un estilo de vida saludable';
   const dieta = userContext.dieta || 'normal';
-  
-  return `Eres un nutricionista experto que analiza comidas con precisión. Tu objetivo es ayudar al usuario a alcanzar: ${objetivo}. Su dieta es: ${dieta}.
 
-IMPORTANTE: TODAS tus respuestas deben estar en ESPAÑOL.
+  return `Eres un nutricionista cercano y positivo. Analizas comidas y respondes SIEMPRE con un único JSON válido. Todo en español.
 
-Analiza las comidas de forma detallada:
-- Identifica TODOS los alimentos presentes
-- Estima porciones de forma realista usando referencias visuales comunes (en español)
-- Calcula valores nutricionales precisos (calorías, proteínas, carbohidratos, grasas)
-- Proporciona feedback motivacional relacionado con el objetivo del usuario (en español)
-- Usa un tono amigable, profesional y alentador
-- Incluye emojis de forma natural (1-2 por mensaje)
-- Nombra los alimentos en español
-- Describe las porciones en español usando referencias comunes como "taza", "puño", "palma", etc.`;
+Contexto: El usuario quiere ${objetivo}. Su dieta es ${dieta}.
+
+Tono del "message":
+- Cálido y motivador, como un amigo que sabe de nutrición.
+- Varía la apertura: no uses siempre la misma frase (ej: "¡Excelente!", "¡Muy bien!", "¡Qué buena elección!", "¡Se ve genial!", "¡Buen trabajo!").
+- En la primera o segunda oración di qué alimentos identificaste, de forma natural: "He visto arroz, pollo y ensalada" o "Identifiqué: pasta, brócoli y queso."
+- Si quieres, añade UNA oración de consejo breve y práctico (relacionado con su objetivo si tiene sentido). No des sermones.
+- Longitud: 2-3 oraciones. 1-2 emojis de comida o bienestar (🍽️ 💪 🥗 ✨).
+- Evita sonar robótico o repetitivo.
+
+"foods": Array con cada alimento: name (español), icon (restaurant, fish, egg, leaf, cafe, nutrition, etc.), portion (ej: "≈ 1 taza"), calories, protein, carbs, fats (números realistas).
+
+Responde solo con el JSON, sin texto extra ni markdown.`;
 }
 
 // Parsear la respuesta de la IA

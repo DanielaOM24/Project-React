@@ -1,14 +1,14 @@
 // Register Screen Component
 
-import { analyzeMealAudio, analyzeMealImage, DetailedMealAnalysis } from '@/ai/meal-analysis.service';
-import { UserContext } from '@/ai/prompts';
+import { analyzeMealAudio, analyzeMealImage, type DetailedMealAnalysis } from '@/ai/meal-analysis.service';
+import type { UserContext } from '@/ai/prompts';
 import AudioWaveform from '@/components/AudioWaveform';
 import MainBottomTabs from '@/components/MainBottomTabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { getMealHistory } from '@/services/dashboard';
 import { mealsAPI } from '@/services/meals';
 import { colors, radius, spacing, typography } from '@/styles/designSystem';
-import { MealType } from '@/types';
+import type { MealAnalysisResponseDto, MealType } from '@/types';
 import { MealHistory } from '@/types/meals.type';
 import {
   getMicrophonePermissionStatus,
@@ -64,7 +64,8 @@ export default function RegisterScreen() {
   const [microphonePermission, setMicrophonePermission] = useState<boolean | null>(null);
   const [selectedMealType, setSelectedMealType] = useState<MealType | null>(null);
   const [pendingMediaType, setPendingMediaType] = useState<MediaType | null>(null);
-  const [mealAnalysis, setMealAnalysis] = useState<DetailedMealAnalysis | null>(null);
+  const [mealAnalysisResult, setMealAnalysisResult] = useState<MealAnalysisResponseDto | null>(null);
+  const [geminiAnalysis, setGeminiAnalysis] = useState<DetailedMealAnalysis | null>(null);
   const [audioTranscript, setAudioTranscript] = useState<string>('');
 
   // Effects
@@ -130,77 +131,52 @@ export default function RegisterScreen() {
     }
   };
 
-  // Construir contexto del usuario para la IA
   const buildUserContext = (): UserContext => {
     const goal = user?.goal || 'MAINTAIN_WEIGHT';
     const preference = user?.preference || 'NORMAL';
-    
     let objetivo = 'mantener un estilo de vida saludable';
     if (goal === 'LOSE_WEIGHT') objetivo = 'perder peso';
     else if (goal === 'GAIN_MUSCLE') objetivo = 'ganar masa muscular';
     else if (goal === 'MAINTAIN_WEIGHT') objetivo = 'mantener el peso';
-    
     let dieta = 'normal';
     if (preference === 'VEGETARIANO') dieta = 'vegetariana';
-    
-    return {
-      objetivo,
-      dieta,
-      comidasPreferidas: [],
-      restricciones: [],
-      infoAdicional: '',
-    };
+    return { objetivo, dieta, comidasPreferidas: [], restricciones: [], infoAdicional: '' };
   };
 
   const handleMealTypeSelected = async (mealType: MealType) => {
     setSelectedMealType(mealType);
     setMode('analyzing');
-    
+    setGeminiAnalysis(null);
     try {
       setIsProcessing(true);
-      const userContext = buildUserContext();
-      let analysis: DetailedMealAnalysis;
-      
+      let result: MealAnalysisResponseDto;
       if (pendingMediaType === 'camera' && photoUri) {
-        // Analizar imagen
-        try {
-          const base64 = await imageToBase64(photoUri);
-          if (!base64) {
-            throw new Error('No se pudo procesar la imagen');
-          }
-          const dataUri = `data:image/jpeg;base64,${base64}`;
-          analysis = await analyzeMealImage(dataUri, userContext);
-          
-          // Verificar si el análisis tiene alimentos detectados
-          if (!analysis || !analysis.foods || analysis.foods.length === 0) {
-            throw new Error('FOOD_NOT_RECOGNIZED');
-          }
-        } catch (imageError: any) {
-          // Si es un error de reconocimiento de comida, mostrar mensaje específico
-          if (imageError.message === 'FOOD_NOT_RECOGNIZED' || 
-              imageError.message?.includes('comida') || 
-              imageError.message?.includes('food')) {
-            throw new Error('FOOD_NOT_RECOGNIZED');
-          }
-          // Si es un error de conversión de imagen, relanzar
-          throw imageError;
-        }
+        result = await mealsAPI.uploadImage(photoUri, mealType);
       } else if (pendingMediaType === 'audio' && audioUri) {
-        // Para audio, necesitamos transcribir primero
-        // Por ahora, usamos un texto placeholder que el usuario puede editar
-        // En producción, aquí se integraría con un servicio de transcripción
-        const transcript = audioTranscript || 'Comida descrita por el usuario';
-        analysis = await analyzeMealAudio(transcript, userContext);
-        
-        // Verificar si el análisis tiene alimentos detectados
-        if (!analysis || !analysis.foods || analysis.foods.length === 0) {
-          throw new Error('FOOD_NOT_RECOGNIZED');
-        }
+        result = await mealsAPI.uploadAudio(audioUri, mealType);
       } else {
         throw new Error('No hay media para analizar');
       }
-      
-      setMealAnalysis(analysis);
+      setMealAnalysisResult(result);
+
+      // Llamar a Gemini para mensaje motivacional y alimentos identificados (no bloquea si falla)
+      const userContext = buildUserContext();
+      try {
+        if (pendingMediaType === 'camera' && photoUri) {
+          const base64 = await imageToBase64(photoUri);
+          if (base64) {
+            const dataUri = `data:image/jpeg;base64,${base64}`;
+            const gemini = await analyzeMealImage(dataUri, userContext);
+            setGeminiAnalysis(gemini);
+          }
+        } else if (pendingMediaType === 'audio' && audioUri) {
+          const transcript = audioTranscript || 'Comida descrita por el usuario';
+          const gemini = await analyzeMealAudio(transcript, userContext);
+          setGeminiAnalysis(gemini);
+        }
+      } catch (geminiErr) {
+        console.warn('[Register] Gemini no disponible o falló:', geminiErr);
+      }
       setMode('analysis');
     } catch (error: any) {
       console.error('[Register] Error analizando comida:', error);
@@ -264,49 +240,19 @@ export default function RegisterScreen() {
     }
   };
 
-  const handleConfirmAnalysis = async () => {
-    if (!selectedMealType || !mealAnalysis) return;
-    
-    try {
-      setIsProcessing(true);
-      
-      // Subir a la API
-      let analysisResult;
-      if (pendingMediaType === 'camera' && photoUri) {
-        analysisResult = await mealsAPI.uploadImage(photoUri, selectedMealType);
-      } else if (pendingMediaType === 'audio' && audioUri) {
-        analysisResult = await mealsAPI.uploadAudio(audioUri, selectedMealType);
-      } else {
-        throw new Error('No hay media para subir');
-      }
-      
-      console.log('[Register] Análisis de comida subido:', analysisResult);
-      
-      // Limpiar estados
-      setPhotoUri(null);
-      setAudioUri(null);
-      setSelectedMealType(null);
-      setMealAnalysis(null);
-      setPendingMediaType(null);
-      setAudioTranscript('');
-      setMode('main');
-      
-      // Mostrar mensaje de éxito y navegar al home para que se refresquen los datos
-      Alert.alert('Éxito', 'Comida registrada correctamente', [
-        {
-          text: 'OK',
-          onPress: () => {
-            // Navegar al home - los datos se refrescarán automáticamente con useFocusEffect
-            router.replace('/(tabs)/home');
-          },
-        },
-      ]);
-    } catch (error: any) {
-      console.error('[Register] Error al guardar análisis:', error);
-      Alert.alert('Error', error.message || 'No se pudo guardar el análisis');
-    } finally {
-      setIsProcessing(false);
-    }
+  const handleConfirmAnalysis = () => {
+    if (!mealAnalysisResult) return;
+    setPhotoUri(null);
+    setAudioUri(null);
+    setSelectedMealType(null);
+    setMealAnalysisResult(null);
+    setGeminiAnalysis(null);
+    setPendingMediaType(null);
+    setAudioTranscript('');
+    setMode('main');
+    Alert.alert('Éxito', 'Comida registrada correctamente', [
+      { text: 'OK', onPress: () => router.replace('/(tabs)/home') },
+    ]);
   };
 
   const handleRequestPermissionAndOpenAudio = async () => {
@@ -805,14 +751,39 @@ export default function RegisterScreen() {
     );
   }
 
-  // Vista de resultados del análisis
-  if (mode === 'analysis' && mealAnalysis) {
+  // Etiquetas de tipo de comida
+  const mealTypeLabels: Record<string, string> = {
+    BREAKFAST: 'Desayuno',
+    LUNCH: 'Almuerzo',
+    DINNER: 'Cena',
+    SNACK: 'Snack',
+  };
+  const formatAnalyzedAt = (iso?: string) => {
+    if (!iso) return '';
+    try {
+      const d = new Date(iso);
+      return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return iso;
+    }
+  };
+
+  // Vista de resultados del análisis (respuesta del endpoint /api/meals/analyze)
+  if (mode === 'analysis' && mealAnalysisResult) {
+    const np = mealAnalysisResult.nutritionProfile;
+    const calories = np?.calories ?? 0;
+    const protein = np?.protein ?? 0;
+    const carbs = np?.carbs ?? 0;
+    const fats = np?.fats ?? 0;
+    const mealTypeLabel = mealTypeLabels[mealAnalysisResult.mealType || ''] || mealAnalysisResult.mealType || 'Comida';
+
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <ScrollView style={styles.analysisContainer} showsVerticalScrollIndicator={false}>
           <View style={styles.analysisHeader}>
-            <Pressable style={styles.backButtonHeader} onPress={() => {
-              setMealAnalysis(null);
+            <Pressable style={styles.backButtonHeader}             onPress={() => {
+              setMealAnalysisResult(null);
+              setGeminiAnalysis(null);
               setSelectedMealType(null);
               setMode('mealTypeSelection');
             }}>
@@ -822,51 +793,71 @@ export default function RegisterScreen() {
             <View style={styles.backButtonHeader} />
           </View>
 
-          {/* Mensaje de NutriLens */}
-          <View style={styles.nutrilensMessageContainer}>
-            <View style={styles.nutrilensIconContainer}>
-              <Ionicons name="sparkles" size={28} color={colors.greenprimary} />
-            </View>
-            <Text style={styles.nutrilensMessageText}>{mealAnalysis.message}</Text>
+          {/* Tipo de comida y fecha */}
+          <View style={styles.apiResultBadge}>
+            <Text style={styles.apiResultMealType}>{mealTypeLabel}</Text>
+            {mealAnalysisResult.analyzedAt ? (
+              <Text style={styles.apiResultDate}>{formatAnalyzedAt(mealAnalysisResult.analyzedAt)}</Text>
+            ) : null}
           </View>
 
-          {/* Alimentos detectados */}
-          <Text style={styles.detectedFoodsTitle}>Alimentos detectados</Text>
-          {mealAnalysis.foods.map((food, index) => (
-            <View key={index} style={styles.foodCard}>
-              <View style={styles.foodCardHeader}>
-                <View style={styles.foodIconContainer}>
-                  <Ionicons name={food.icon as any} size={36} color={colors.greenprimary} />
-                </View>
-                <View style={styles.foodInfoContainer}>
-                  <Text style={styles.foodName}>{food.name}</Text>
-                  <View style={styles.foodPortionContainer}>
-                    <Ionicons name="hand-left-outline" size={18} color={colors.darkgreen} />
-                    <Text style={styles.foodPortion}>{food.portion}</Text>
-                  </View>
-                </View>
+          {/* Mensaje de NutriLens (Gemini): "¡Excelente! Has tenido una comida equilibrada..." */}
+          {geminiAnalysis?.message ? (
+            <View style={styles.geminiMessageContainer}>
+              <View style={styles.geminiIconRow}>
+                <Ionicons name="sparkles" size={28} color={colors.greenprimary} />
+                <Text style={styles.geminiMessageTitle}>NutriLens</Text>
               </View>
-              <View style={styles.foodNutritionContainer}>
-                <Text style={styles.foodNutritionText}>
-                  {food.calories} kcal • P: {food.protein}g • C: {food.carbs}g • G: {food.fats}g
-                </Text>
+              <Text style={styles.geminiMessageText}>{geminiAnalysis.message}</Text>
+            </View>
+          ) : null}
+
+          {/* Miniatura si es imagen */}
+          {mealAnalysisResult.mediaType === 'IMAGE' && mealAnalysisResult.mediaUrl ? (
+            <View style={styles.apiResultImageWrap}>
+              <Image source={{ uri: mealAnalysisResult.mediaUrl }} style={styles.apiResultImage} resizeMode="cover" />
+            </View>
+          ) : null}
+
+          {/* Perfil nutricional */}
+          <View style={styles.nutritionProfileCard}>
+            <View style={styles.nutritionProfileHeader}>
+              <Ionicons name="nutrition-outline" size={28} color={colors.greenprimary} />
+              <Text style={styles.nutritionProfileTitle}>Perfil nutricional</Text>
+            </View>
+            <View style={styles.nutritionGrid}>
+              <View style={styles.nutritionItem}>
+                <Text style={styles.nutritionValue}>{calories}</Text>
+                <Text style={styles.nutritionLabel}>kcal</Text>
+              </View>
+              <View style={styles.nutritionItem}>
+                <Text style={styles.nutritionValue}>{protein}</Text>
+                <Text style={styles.nutritionLabel}>Proteína (g)</Text>
+              </View>
+              <View style={styles.nutritionItem}>
+                <Text style={styles.nutritionValue}>{carbs}</Text>
+                <Text style={styles.nutritionLabel}>Carbos (g)</Text>
+              </View>
+              <View style={styles.nutritionItem}>
+                <Text style={styles.nutritionValue}>{fats}</Text>
+                <Text style={styles.nutritionLabel}>Grasas (g)</Text>
               </View>
             </View>
-          ))}
+          </View>
 
-          {/* Total de la comida */}
+          {/* Total destacado */}
           <View style={styles.totalContainer}>
             <Text style={styles.totalLabel}>Total de esta comida</Text>
-            <Text style={styles.totalCalories}>{mealAnalysis.totalCalories} kcal</Text>
+            <Text style={styles.totalCalories}>{calories} kcal</Text>
           </View>
         </ScrollView>
 
-        {/* Botones de acción */}
         <View style={styles.analysisActions}>
           <TouchableOpacity
             style={styles.analysisButtonSecondary}
             onPress={() => {
-              setMealAnalysis(null);
+              setMealAnalysisResult(null);
+              setGeminiAnalysis(null);
               setSelectedMealType(null);
               if (pendingMediaType === 'camera') {
                 setPhotoUri(null);
@@ -883,13 +874,7 @@ export default function RegisterScreen() {
             style={styles.analysisButtonPrimary}
             onPress={handleConfirmAnalysis}
             disabled={isProcessing}>
-            {isProcessing ? (
-              <ActivityIndicator size="small" color={colors.primaryText} />
-            ) : (
-              <>
-                <Text style={styles.analysisButtonPrimaryText}>Registrar</Text>
-              </>
-            )}
+            <Text style={styles.analysisButtonPrimaryText}>Listo</Text>
           </TouchableOpacity>
         </View>
         <MainBottomTabs activeTab="register" />
@@ -1775,6 +1760,36 @@ const styles = StyleSheet.create({
     color: colors.textdark,
     lineHeight: 22,
   },
+  geminiMessageContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+    borderWidth: 1.5,
+    borderColor: colors.whiteOverlay,
+    shadowColor: colors.darkgreen,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  geminiIconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  geminiMessageTitle: {
+    fontSize: typography.size.subtitle,
+    fontFamily: typography.fontfamily.bold,
+    color: colors.darkgreen,
+  },
+  geminiMessageText: {
+    fontSize: typography.size.body,
+    fontFamily: typography.fontfamily.regular,
+    color: colors.textdark,
+    lineHeight: 22,
+  },
   detectedFoodsTitle: {
     fontSize: typography.size.subtitle,
     fontFamily: typography.fontfamily.bold,
@@ -1869,6 +1884,86 @@ const styles = StyleSheet.create({
     fontSize: typography.size.title,
     fontFamily: typography.fontfamily.bold,
     color: colors.darkgreen,
+  },
+  apiResultBadge: {
+    backgroundColor: colors.appBackground,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.whiteOverlay,
+  },
+  apiResultMealType: {
+    fontSize: typography.size.subtitle,
+    fontFamily: typography.fontfamily.bold,
+    color: colors.darkgreen,
+  },
+  apiResultDate: {
+    fontSize: typography.size.caption,
+    fontFamily: typography.fontfamily.regular,
+    color: colors.textdark,
+    opacity: 0.7,
+    marginTop: spacing.xs,
+  },
+  apiResultImageWrap: {
+    width: '100%',
+    height: 200,
+    borderRadius: radius.md,
+    overflow: 'hidden',
+    marginBottom: spacing.lg,
+    backgroundColor: colors.whiteOverlay,
+  },
+  apiResultImage: {
+    width: '100%',
+    height: '100%',
+  },
+  nutritionProfileCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+    borderWidth: 1.5,
+    borderColor: colors.whiteOverlay,
+    shadowColor: colors.darkgreen,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  nutritionProfileHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  nutritionProfileTitle: {
+    fontSize: typography.size.subtitle,
+    fontFamily: typography.fontfamily.bold,
+    color: colors.darkgreen,
+  },
+  nutritionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+  },
+  nutritionItem: {
+    flex: 1,
+    minWidth: '45%',
+    backgroundColor: colors.appBackground,
+    borderRadius: radius.sm,
+    padding: spacing.md,
+    alignItems: 'center',
+  },
+  nutritionValue: {
+    fontSize: typography.size.title,
+    fontFamily: typography.fontfamily.bold,
+    color: colors.darkgreen,
+  },
+  nutritionLabel: {
+    fontSize: typography.size.caption,
+    fontFamily: typography.fontfamily.regular,
+    color: colors.textdark,
+    marginTop: spacing.xs,
   },
   analysisActions: {
     flexDirection: 'row',
